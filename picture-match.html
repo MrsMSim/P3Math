@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fraction to Picture Match</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #FBF1DE;
+    --ink: #3B2A20;
+    --ink-soft: #6B584A;
+    --card: #FFFFFF;
+    --plum: #7B3F61;
+    --plum-dark: #5E2F4B;
+    --success: #4C9A5B;
+    --success-bg: #E7F3E9;
+    --error: #C4453A;
+    --error-bg: #FBEAE8;
+    --ring: #E8A63B;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 8% 12%, rgba(123,63,97,0.06) 0, transparent 40%),
+      radial-gradient(circle at 92% 88%, rgba(232,166,59,0.10) 0, transparent 40%);
+    font-family: 'Nunito', sans-serif;
+    color: var(--ink);
+    display: flex;
+    justify-content: center;
+    padding: 28px 16px 60px;
+  }
+
+  .wrap { width: 100%; max-width: 720px; }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+  }
+
+  h1 {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: clamp(26px, 5vw, 36px);
+    margin: 0;
+    color: var(--plum-dark);
+    letter-spacing: -0.01em;
+  }
+
+  .subtitle {
+    margin: 4px 0 0;
+    color: var(--ink-soft);
+    font-size: 16px;
+    font-weight: 600;
+  }
+
+  .badges { display: flex; gap: 10px; }
+
+  .badge {
+    background: var(--card);
+    border: 2px solid #EEDFC4;
+    border-radius: 14px;
+    padding: 8px 14px;
+    text-align: center;
+    min-width: 74px;
+    box-shadow: 0 2px 0 #EEDFC4;
+  }
+
+  .badge .num {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--plum);
+    line-height: 1;
+  }
+
+  .badge .lbl {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ink-soft);
+    font-weight: 700;
+  }
+
+  .levelToggle {
+    display: flex;
+    gap: 10px;
+    margin-top: 18px;
+  }
+
+  .levelBtn {
+    flex: 1;
+    background: var(--card);
+    border: 2px solid #EEDFC4;
+    border-radius: 14px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+    text-align: center;
+    box-shadow: 0 2px 0 #EEDFC4;
+    transition: transform 0.1s ease, border-color 0.1s ease, background 0.1s ease;
+  }
+
+  .levelBtn:hover { transform: translateY(-2px); }
+  .levelBtn:focus-visible { outline: 3px solid var(--plum); outline-offset: 2px; }
+
+  .levelBtn .lvl-title {
+    display: block;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--plum-dark);
+  }
+
+  .levelBtn .lvl-sub {
+    display: block;
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-weight: 700;
+  }
+
+  .levelBtn.active {
+    background: var(--plum);
+    border-color: var(--plum-dark);
+    box-shadow: 0 2px 0 var(--plum-dark);
+  }
+  .levelBtn.active .lvl-title,
+  .levelBtn.active .lvl-sub { color: #fff; }
+
+  .prompt {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 22px 20px;
+    margin: 20px 0 22px;
+    text-align: center;
+    box-shadow: 0 3px 0 #EEDFC4, 0 4px 12px rgba(59,42,32,0.06);
+  }
+
+  .prompt .lead {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--ink-soft);
+    margin: 0 0 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .prompt .frac {
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 700;
+    font-size: 52px;
+    line-height: 1;
+    display: inline-block;
+  }
+
+  .prompt .frac .n { display: block; padding-bottom: 6px; border-bottom: 5px solid var(--ink); }
+  .prompt .frac .d { display: block; padding-top: 6px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  @media (min-width: 560px) {
+    .grid { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  .card {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 16px 10px;
+    text-align: center;
+    cursor: pointer;
+    border: 3px solid transparent;
+    box-shadow: 0 4px 0 #EEDFC4, 0 4px 10px rgba(59,42,32,0.06);
+    transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+    user-select: none;
+  }
+
+  .card:hover { transform: translateY(-3px); }
+  .card:focus-visible { outline: 3px solid var(--plum); outline-offset: 2px; }
+
+  .card.correct {
+    border-color: var(--success);
+    box-shadow: 0 4px 0 var(--success), 0 6px 14px rgba(76,154,91,0.25);
+    animation: pop 0.4s ease;
+  }
+
+  .card.incorrect {
+    border-color: var(--error);
+    animation: shake 0.35s ease;
+  }
+
+  .card.reveal {
+    border-color: var(--success);
+    box-shadow: 0 4px 0 var(--success);
+  }
+
+  .card.disabled { pointer-events: none; opacity: 0.55; }
+
+  @keyframes pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.06); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+  }
+
+  .plate {
+    width: 100%;
+    max-width: 108px;
+    margin: 0 auto;
+    filter: drop-shadow(0 3px 2px rgba(59,42,32,0.15));
+  }
+
+  .feedback {
+    margin-top: 20px;
+    border-radius: 16px;
+    padding: 16px 20px;
+    font-weight: 700;
+    font-size: 16px;
+    min-height: 26px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .feedback.idle { background: transparent; color: var(--ink-soft); font-weight: 600; }
+  .feedback.good { background: var(--success-bg); color: var(--success); }
+  .feedback.bad { background: var(--error-bg); color: var(--error); }
+
+  footer {
+    margin-top: 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .newq {
+    background: var(--plum);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 12px 22px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 0 var(--plum-dark);
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+  }
+  .newq:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--plum-dark); }
+  .newq:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+
+  .hint { font-size: 13px; color: var(--ink-soft); font-weight: 600; }
+  .home { font-size: 13px; color: var(--plum); font-weight: 700; text-decoration: none; }
+  .home:hover { text-decoration: underline; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .card, .newq { transition: none; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Fraction to Picture Match</h1>
+      <p class="subtitle" id="subtitleText">Pick the pie that shows the fraction.</p>
+    </div>
+    <div class="badges">
+      <div class="badge"><div class="num" id="scoreNum">0</div><div class="lbl">Correct</div></div>
+      <div class="badge"><div class="num" id="streakNum">0</div><div class="lbl">Streak</div></div>
+    </div>
+  </header>
+
+  <div class="levelToggle" role="group" aria-label="Choose level">
+    <button class="levelBtn active" id="levelBtn1" data-level="1">
+      <span class="lvl-title">Level 1</span>
+      <span class="lvl-sub">Same Picture</span>
+    </button>
+    <button class="levelBtn" id="levelBtn2" data-level="2">
+      <span class="lvl-title">Level 2</span>
+      <span class="lvl-sub">Equivalent Fractions</span>
+    </button>
+  </div>
+
+  <div class="prompt">
+    <p class="lead" id="promptLead">Which picture shows...</p>
+    <div class="frac" id="targetFrac"></div>
+  </div>
+
+  <div class="grid" id="grid" role="group" aria-label="Picture choices"></div>
+
+  <div class="feedback idle" id="feedback" role="status" aria-live="polite">Tap the picture that matches the fraction above.</div>
+
+  <footer>
+    <button class="newq" id="newQBtn">🔄 New Question</button>
+    <a class="home" href="index.html">← Back to Fraction Games</a>
+  </footer>
+</div>
+
+<script>
+const COLORS = ['#D6473C', '#3E6B9E', '#E8A63B', '#5E9C4C', '#8756A8', '#2F9E9E'];
+
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function pick(arr) { return arr[randInt(0, arr.length - 1)]; }
+
+function pieSVG(n, d, color) {
+  const size = 108, r = 46, cx = size/2, cy = size/2;
+  let paths = '';
+  for (let i = 0; i < d; i++) {
+    const a0 = -Math.PI/2 + i * (2*Math.PI/d);
+    const a1 = -Math.PI/2 + (i+1) * (2*Math.PI/d);
+    const x0 = cx + r*Math.cos(a0), y0 = cy + r*Math.sin(a0);
+    const x1 = cx + r*Math.cos(a1), y1 = cy + r*Math.sin(a1);
+    const largeArc = (a1 - a0) > Math.PI ? 1 : 0;
+    const fill = i < n ? color : '#FFFFFF';
+    paths += `<path d="M${cx},${cy} L${x0.toFixed(2)},${y0.toFixed(2)} A${r},${r} 0 ${largeArc} 1 ${x1.toFixed(2)},${y1.toFixed(2)} Z" fill="${fill}" stroke="#3B2A20" stroke-width="1.4" stroke-opacity="0.55"/>`;
+  }
+  return `<svg class="plate" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="${cx}" cy="${cy+2}" rx="${r+4}" ry="${r+4}" fill="none" stroke="#3B2A20" stroke-width="1.2" stroke-dasharray="3 3" stroke-opacity="0.3"/>
+    ${paths}
+  </svg>`;
+}
+
+function keyOf(n, d) { return `${n}/${d}`; }
+
+// ---------- Level 1: same picture (original behaviour) ----------
+function makeDistractorsLevel1(n, d, pool) {
+  const out = [];
+  const seen = new Set([keyOf(n, d)]);
+  const maxD = Math.max(...pool);
+
+  function tryAdd(nn, dd) {
+    if (dd < 2 || dd > maxD) return false;
+    if (nn < 1 || nn > dd - 1) return false;
+    const k = keyOf(nn, dd);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    out.push([nn, dd]);
+    return true;
+  }
+
+  // 1) complement: shade the "leftover" part instead (classic shading mistake)
+  tryAdd(d - n, d);
+
+  // 2) off-by-one numerator, same denominator
+  const offCandidates = [n - 1, n + 1, n - 2, n + 2];
+  for (const cand of offCandidates) {
+    if (out.length >= 2) break;
+    tryAdd(cand, d);
+  }
+
+  // 3) denominator confusion: same numerator, neighbouring denominator (within the pool)
+  const poolDens = pool.filter(x => x !== d).sort((a, b) => Math.abs(a - d) - Math.abs(b - d));
+  for (const cand of poolDens) {
+    if (out.length >= 3) break;
+    tryAdd(n, cand);
+  }
+
+  // fallback: random plausible fractions from the same pool if still short
+  let guard = 0;
+  while (out.length < 3 && guard < 200) {
+    guard++;
+    const dd = pick(pool);
+    const nn = randInt(1, dd - 1);
+    tryAdd(nn, dd);
+  }
+
+  return out.slice(0, 3);
+}
+
+const LEVEL1_TIERS = [
+  { after: 0,  denominators: [2, 3, 4] },
+  { after: 4,  denominators: [2, 3, 4, 5, 6] },
+  { after: 9,  denominators: [2, 3, 4, 5, 6, 8, 10] },
+  { after: 14, denominators: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] },
+];
+
+function currentDenominatorPool(count) {
+  let pool = LEVEL1_TIERS[0].denominators;
+  for (const tier of LEVEL1_TIERS) {
+    if (count >= tier.after) pool = tier.denominators;
+  }
+  return pool;
+}
+
+function generateQuestionLevel1(questionCount) {
+  const pool = currentDenominatorPool(questionCount);
+  const d = pick(pool);
+  const n = randInt(1, d - 1);
+  const distractors = makeDistractorsLevel1(n, d, pool);
+  const options = [[n, d], ...distractors];
+  for (let i = options.length - 1; i > 0; i--) {
+    const j = randInt(0, i);
+    [options[i], options[j]] = [options[j], options[i]];
+  }
+  const correctIdx = options.findIndex(([nn, dd]) => nn === n && dd === d);
+  return { prompt: [n, d], options, correctIdx };
+}
+
+// ---------- Level 2: equivalent fractions (harder) ----------
+// Prompt shows a fraction as text; the correct picture uses a DIFFERENT
+// denominator that represents the same value — students must recognise
+// equivalence, not just match the picture visually.
+const EQUIV_BASES = [
+  [1,2],[1,3],[2,3],[1,4],[3,4],[1,5],[2,5],[3,5],[4,5],[1,6],[5,6]
+];
+
+const LEVEL2_TIERS = [
+  { after: 0,  bases: EQUIV_BASES.filter(([n,d]) => d <= 4), factors: [1, 2] },
+  { after: 4,  bases: EQUIV_BASES.filter(([n,d]) => d <= 5), factors: [1, 2, 3] },
+  { after: 9,  bases: EQUIV_BASES, factors: [1, 2, 3] },
+  { after: 14, bases: EQUIV_BASES, factors: [1, 2, 3, 4] },
+];
+
+function currentLevel2Tier(count) {
+  let tier = LEVEL2_TIERS[0];
+  for (const t of LEVEL2_TIERS) if (count >= t.after) tier = t;
+  return tier;
+}
+
+function generateQuestionLevel2(questionCount) {
+  const maxD = 12;
+  const tier = currentLevel2Tier(questionCount);
+
+  let base, validFactors, k1, k2;
+  let guard = 0;
+  do {
+    base = pick(tier.bases);
+    validFactors = tier.factors.filter(f => base[1] * f <= maxD);
+    guard++;
+  } while (validFactors.length < 2 && guard < 50);
+  if (validFactors.length < 2) validFactors = [1, 2]; // guaranteed safe fallback (base d <= 6)
+
+  k1 = pick(validFactors);
+  do { k2 = pick(validFactors); } while (k2 === k1);
+
+  const prompt = [base[0] * k1, base[1] * k1];
+  const correctPic = [base[0] * k2, base[1] * k2];
+
+  const targetVal = base[0] / base[1];
+  const seenValues = new Set([targetVal.toFixed(6)]);
+  const seenPairs = new Set([keyOf(...correctPic), keyOf(...prompt)]);
+  const distractors = [];
+
+  function tryAdd(nn, dd) {
+    if (dd < 2 || dd > maxD || nn < 1 || nn > dd - 1) return false;
+    const val = (nn / dd).toFixed(6);
+    if (seenValues.has(val)) return false;
+    const key = keyOf(nn, dd);
+    if (seenPairs.has(key)) return false;
+    seenValues.add(val);
+    seenPairs.add(key);
+    distractors.push([nn, dd]);
+    return true;
+  }
+
+  // classic traps: same denominator as the correct picture, wrong numerator
+  tryAdd(correctPic[0] - 1, correctPic[1]);
+  tryAdd(correctPic[0] + 1, correctPic[1]);
+  // same denominator as the prompt, wrong numerator
+  tryAdd(prompt[0] - 1, prompt[1]);
+  tryAdd(prompt[0] + 1, prompt[1]);
+
+  // fallback: random plausible fractions
+  let fguard = 0;
+  while (distractors.length < 3 && fguard < 300) {
+    fguard++;
+    const dd = randInt(2, maxD);
+    const nn = randInt(1, dd - 1);
+    tryAdd(nn, dd);
+  }
+
+  const options = [correctPic, ...distractors.slice(0, 3)];
+  for (let i = options.length - 1; i > 0; i--) {
+    const j = randInt(0, i);
+    [options[i], options[j]] = [options[j], options[i]];
+  }
+  const correctIdx = options.findIndex(([nn, dd]) => nn === correctPic[0] && dd === correctPic[1]);
+
+  return { prompt, options, correctIdx };
+}
+
+function generateQuestion(questionCount, level) {
+  return level === 2 ? generateQuestionLevel2(questionCount) : generateQuestionLevel1(questionCount);
+}
+
+let question, score = 0, streak = 0, locked = false, questionCount = 0, level = 1;
+
+function resetAndRender() {
+  score = 0; streak = 0; questionCount = 0;
+  document.getElementById('scoreNum').textContent = score;
+  document.getElementById('streakNum').textContent = streak;
+  render();
+}
+
+function render() {
+  question = generateQuestion(questionCount, level);
+  questionCount++;
+  locked = false;
+  const [n, d] = question.prompt;
+  document.getElementById('targetFrac').innerHTML = `<span class="n">${n}</span><span class="d">${d}</span>`;
+
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  question.options.forEach(([n2, d2], idx) => {
+    const color = COLORS[idx % COLORS.length];
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.tabIndex = 0;
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-label', `Picture option ${idx + 1}`);
+    card.dataset.idx = idx;
+    card.innerHTML = pieSVG(n2, d2, color);
+    card.addEventListener('click', () => onPick(idx));
+    card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(idx); } });
+    grid.appendChild(card);
+  });
+
+  if (level === 2) {
+    setFeedback('idle', "Tap the picture that's equivalent — it may be cut differently!");
+  } else {
+    setFeedback('idle', 'Tap the picture that matches the fraction above.');
+  }
+}
+
+function setFeedback(kind, msg) {
+  const el = document.getElementById('feedback');
+  el.className = `feedback ${kind}`;
+  el.textContent = msg;
+}
+
+function cardEl(idx) { return document.querySelector(`.card[data-idx="${idx}"]`); }
+
+function onPick(idx) {
+  if (locked) return;
+  locked = true;
+  document.querySelectorAll('.card').forEach(c => c.classList.add('disabled'));
+
+  const [pn, pd] = question.prompt;
+  const [cn, cd] = question.options[question.correctIdx];
+
+  if (idx === question.correctIdx) {
+    cardEl(idx).classList.remove('disabled');
+    cardEl(idx).classList.add('correct');
+    score++; streak++;
+    document.getElementById('scoreNum').textContent = score;
+    document.getElementById('streakNum').textContent = streak;
+    const msg = level === 2
+      ? `Yes! ${cn}/${cd} is equivalent to ${pn}/${pd} — same amount, cut differently!`
+      : `Yes! That picture shows ${pn}/${pd}. Next question coming up!`;
+    setFeedback('good', msg);
+    setTimeout(render, 1400);
+  } else {
+    cardEl(idx).classList.remove('disabled');
+    cardEl(idx).classList.add('incorrect');
+    streak = 0;
+    document.getElementById('streakNum').textContent = streak;
+    const msg = level === 2
+      ? `Not quite — that picture isn't equal to ${pn}/${pd}. Look again!`
+      : `Not quite. Look again — which picture really shows ${pn}/${pd}?`;
+    setFeedback('bad', msg);
+    setTimeout(() => {
+      cardEl(idx).classList.remove('incorrect');
+      document.querySelectorAll('.card').forEach(c => c.classList.remove('disabled'));
+      locked = false;
+    }, 900);
+  }
+}
+
+document.getElementById('newQBtn').addEventListener('click', () => { render(); });
+
+document.getElementById('levelBtn1').addEventListener('click', () => {
+  if (level === 1) return;
+  level = 1;
+  document.getElementById('levelBtn1').classList.add('active');
+  document.getElementById('levelBtn2').classList.remove('active');
+  document.getElementById('subtitleText').textContent = 'Pick the pie that shows the fraction.';
+  document.getElementById('promptLead').textContent = 'Which picture shows...';
+  resetAndRender();
+});
+
+document.getElementById('levelBtn2').addEventListener('click', () => {
+  if (level === 2) return;
+  level = 2;
+  document.getElementById('levelBtn2').classList.add('active');
+  document.getElementById('levelBtn1').classList.remove('active');
+  document.getElementById('subtitleText').textContent = "Pick the pie that's equivalent — even if it looks different!";
+  document.getElementById('promptLead').textContent = 'Which picture is equivalent to...';
+  resetAndRender();
+});
+
+render();
+</script>
+</body>
+</html>
