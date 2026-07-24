@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equivalent Fraction Concentration</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700&family=Fredoka:wght@500;600;700&display=swap');
+
+  :root{
+    --card-cream:#fff8fb;
+    --card-line:#f472b6;
+    --ink-blue:#9d174d;
+    --ink-blue-deep:#701a45;
+    --red-rule:#ec4899;
+    --accent:#7c3aed;
+    --paper-shadow: 0 2px 6px rgba(124,58,237,0.18);
+    --bg:#faf5ff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Lexend', sans-serif;
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 15% 20%, #f3e8ff 0%, transparent 40%),
+      radial-gradient(circle at 85% 80%, #fce7f3 0%, transparent 40%);
+    color:#1f2937;
+    min-height:100vh;
+    padding: 20px 16px 60px;
+  }
+
+  header{
+    max-width:980px;
+    margin:0 auto 18px;
+    text-align:center;
+  }
+  h1{
+    font-size:clamp(24px, 4vw, 34px);
+    color:var(--ink-blue-deep);
+    margin:0 0 4px;
+    letter-spacing:0.3px;
+  }
+  h1 span{ color: var(--red-rule); }
+  .tagline{
+    font-size:14px;
+    color:#5b6b7d;
+    margin:0;
+  }
+
+  .panel{
+    max-width:980px;
+    margin:0 auto 22px;
+    background:#fff;
+    border:1.5px solid var(--card-line);
+    border-radius:14px;
+    padding:16px 20px;
+    box-shadow: var(--paper-shadow);
+  }
+
+  .setup-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:20px;
+    align-items:center;
+    justify-content:center;
+  }
+  .setup-group{ display:flex; flex-direction:column; gap:6px; align-items:center; }
+  .setup-group label{ font-size:12.5px; font-weight:600; color:var(--ink-blue); text-transform:uppercase; letter-spacing:0.5px;}
+  .pill-row{ display:flex; gap:6px; }
+  .pill-btn{
+    border:2px solid var(--accent);
+    background:#fff;
+    color:var(--accent);
+    font-weight:700;
+    font-size:14px;
+    padding:6px 14px;
+    border-radius:999px;
+    cursor:pointer;
+    transition: all .15s ease;
+  }
+  .pill-btn.active{ background:var(--accent); color:#fff; }
+  .pill-btn:hover{ transform: translateY(-1px); }
+
+  .start-btn{
+    background: var(--red-rule);
+    color:#fff;
+    border:none;
+    font-family:inherit;
+    font-weight:700;
+    font-size:16px;
+    padding:10px 26px;
+    border-radius:10px;
+    cursor:pointer;
+    box-shadow: 0 3px 0 #a23347;
+  }
+  .start-btn:active{ transform: translateY(2px); box-shadow: 0 1px 0 #a23347;}
+
+  .scoreboard{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:center;
+    margin-bottom:18px;
+  }
+  .score-card{
+    position:relative;
+    background:#fff;
+    border:2px solid var(--card-line);
+    border-radius:10px;
+    padding:8px 16px 8px 14px;
+    min-width:110px;
+    text-align:center;
+    box-shadow: var(--paper-shadow);
+  }
+  .score-card.turn{
+    border-color: var(--red-rule);
+    transform: translateY(-3px) rotate(-1deg);
+  }
+  .score-card::before{
+    content:"";
+    position:absolute;
+    left:0; top:10px; bottom:10px;
+    width:3px;
+    background: var(--red-rule);
+    border-radius:2px;
+  }
+  .score-name{ font-size:12px; font-weight:700; color:var(--ink-blue); text-transform:uppercase; letter-spacing:0.4px;}
+  .score-count{ font-size:22px; font-weight:700; color:#1f2937; }
+  .turn-flag{
+    position:absolute; top:-10px; right:-8px;
+    background:var(--red-rule); color:#fff;
+    font-size:10px; font-weight:700;
+    padding:2px 7px; border-radius:999px;
+    transform: rotate(6deg);
+  }
+
+  #board{
+    max-width:980px;
+    margin:0 auto;
+    display:grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap:10px;
+  }
+  @media (max-width:760px){
+    #board{ grid-template-columns: repeat(4, 1fr); }
+  }
+
+  .card-slot{ perspective: 800px; aspect-ratio: 3/4; }
+  .card{
+    position:relative;
+    width:100%; height:100%;
+    transform-style: preserve-3d;
+    transition: transform .45s cubic-bezier(.2,.9,.3,1);
+    cursor:pointer;
+  }
+  .card.flipped{ transform: rotateY(180deg); }
+  .card.matched{ cursor:default; }
+  .card.squishing{ animation: squish .32s ease; }
+  @keyframes squish{
+    0%{ transform: scale(1,1); }
+    35%{ transform: scale(1.22,0.68); }
+    65%{ transform: scale(0.85,1.16); }
+    85%{ transform: scale(1.05,0.96); }
+    100%{ transform: scale(1,1); }
+  }
+  @keyframes jiggle{
+    0%,100%{ transform: rotate(0deg) scale(1,1); }
+    50%{ transform: rotate(-3deg) scale(1.03,0.965); }
+  }
+  @keyframes blobmorph{
+    0%   { border-radius: 58% 42% 53% 47% / 45% 55% 45% 55%; }
+    25%  { border-radius: 46% 54% 60% 40% / 55% 48% 52% 45%; }
+    50%  { border-radius: 62% 38% 44% 56% / 40% 60% 42% 58%; }
+    75%  { border-radius: 40% 60% 55% 45% / 58% 44% 56% 42%; }
+    100% { border-radius: 58% 42% 53% 47% / 45% 55% 45% 55%; }
+  }
+  @keyframes shineSweep{
+    0%   { transform: translate(-60%,-60%) rotate(20deg); opacity:0; }
+    15%  { opacity:.9; }
+    45%  { opacity:0; }
+    100% { transform: translate(60%,60%) rotate(20deg); opacity:0; }
+  }
+  @keyframes dripWobble{
+    0%,100%{ transform: translateY(0) scale(1,1); }
+    50%{ transform: translateY(3%) scale(0.94,1.08); }
+  }
+  .card-face{
+    position:absolute; inset:0;
+    backface-visibility:hidden;
+    display:flex; align-items:center; justify-content:center;
+    overflow:visible;
+  }
+  .card-back{
+    border:3px solid rgba(255,255,255,0.75);
+    box-shadow: 0 6px 14px rgba(0,0,0,0.2), inset 0 -8px 12px rgba(0,0,0,0.1), inset 0 6px 10px rgba(255,255,255,0.25);
+    animation: jiggle 3.6s ease-in-out infinite, blobmorph 5.2s ease-in-out infinite;
+    position:absolute; inset:2px;
+    transition: transform .25s ease;
+  }
+  .card:not(.flipped):not(.matched):hover .card-back{
+    transform: scale(1.06,0.94);
+  }
+  .card-back::after{
+    content:"";
+    position:absolute;
+    top:12%; left:16%;
+    width:38%; height:24%;
+    background: rgba(255,255,255,0.65);
+    border-radius:60% 40% 55% 45% / 50% 60% 40% 50%;
+    filter: blur(1.5px);
+  }
+  .card-back::before{
+    content:"";
+    position:absolute;
+    inset:-20%;
+    background: linear-gradient(115deg, transparent 40%, rgba(255,255,255,0.85) 50%, transparent 60%);
+    mix-blend-mode: overlay;
+    animation: shineSweep 4.5s ease-in-out infinite;
+    animation-delay: inherit;
+    pointer-events:none;
+  }
+  .drip{
+    position:absolute;
+    border-radius: 50% 50% 55% 45% / 60% 60% 40% 40%;
+    box-shadow: inset 0 -3px 6px rgba(0,0,0,0.1);
+    animation: dripWobble 3s ease-in-out infinite;
+  }
+  .slime-green{ background: radial-gradient(circle at 30% 25%, #baf27a, #6ec93f 70%); }
+  .slime-purple{ background: radial-gradient(circle at 30% 25%, #d3b6fb, #9b5de5 70%); }
+  .slime-blue{ background: radial-gradient(circle at 30% 25%, #9fe3fb, #38bdf8 70%); }
+  .slime-pink{ background: radial-gradient(circle at 30% 25%, #ffc2e2, #f4599e 70%); }
+  .card-back .mark{
+    font-family:'Fredoka', sans-serif;
+    color:rgba(255,255,255,0.85);
+    font-size:26px;
+    font-weight:600;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+    position:relative;
+    z-index:2;
+  }
+  .card-front{
+    background:#fff8fb;
+    border-radius:16px;
+    border:3px solid #f472b6;
+    box-shadow: 0 4px 0 #f9a8d4;
+    transform: rotateY(180deg);
+    flex-direction:column;
+  }
+  .card.matched .card-front{
+    background:#fdf2f8; border-color:#7c3aed; box-shadow: 0 4px 0 #c4b5fd, 0 0 0 4px rgba(124,58,237,0.15);
+  }
+  .frac{
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    display:flex; flex-direction:column; align-items:center;
+    color: var(--ink-blue);
+    line-height:1;
+  }
+  .frac .n{ font-size:clamp(20px,3.4vw,28px); }
+  .frac .r{ width:55%; height:3px; background: var(--red-rule); border-radius:2px; margin:3px 0; }
+  .frac .d{ font-size:clamp(20px,3.4vw,28px); }
+
+  .status-line{
+    max-width:980px;
+    margin: 16px auto 0;
+    text-align:center;
+    font-size:14px;
+    color:#5b6b7d;
+    min-height:20px;
+  }
+
+  .hidden{ display:none !important; }
+
+  .winner-banner{
+    max-width:600px;
+    margin: 24px auto 0;
+    background:#fff;
+    border:2px solid var(--red-rule);
+    border-radius:14px;
+    padding:20px;
+    text-align:center;
+    box-shadow: var(--paper-shadow);
+  }
+  .winner-banner h2{ color:var(--red-rule); margin:0 0 6px; }
+  .winner-banner p{ margin:0 0 14px; color:#374151; font-size:15px; }
+
+  footer{
+    max-width:980px;
+    margin: 30px auto 0;
+    text-align:center;
+    font-size:11.5px;
+    color:#9aa7b5;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Equivalent Fraction <span>Concentration</span></h1>
+  <p class="tagline">Squish two blobs open. If the fractions match, you keep the goo!</p>
+  <button id="soundToggle" class="sound-toggle" aria-label="Toggle sound">🔊 Sound on</button>
+</header>
+
+<div class="panel" id="setupPanel">
+  <div class="setup-row">
+    <div class="setup-group">
+      <label>Players</label>
+      <div class="pill-row" id="playerCountRow">
+        <button class="pill-btn active" data-count="1">1</button>
+        <button class="pill-btn" data-count="2">2</button>
+        <button class="pill-btn" data-count="3">3</button>
+        <button class="pill-btn" data-count="4">4</button>
+      </div>
+    </div>
+    <div class="setup-group">
+      <label>Deck size</label>
+      <div class="pill-row" id="deckSizeRow">
+        <button class="pill-btn active" data-pairs="8">8 pairs</button>
+        <button class="pill-btn" data-pairs="12">12 pairs</button>
+        <button class="pill-btn" data-pairs="16">16 pairs</button>
+        <button class="pill-btn" data-pairs="20">20 pairs</button>
+      </div>
+    </div>
+    <div class="setup-group">
+      <label>&nbsp;</label>
+      <button class="start-btn" id="startBtn">Squish &amp; Shuffle</button>
+    </div>
+  </div>
+</div>
+
+<div class="scoreboard" id="scoreboard"></div>
+<div id="board"></div>
+<p class="status-line" id="statusLine"></p>
+<div class="winner-banner hidden" id="winnerBanner">
+  <h2 id="winnerText"></h2>
+  <p>Great squishing! Shuffle the goo and play again.</p>
+  <button class="start-btn" id="playAgainBtn">Squish Again</button>
+</div>
+
+<footer>Equivalent Fraction Concentration &middot; squish, match, learn &middot; made for P3&ndash;P4 Mathematics</footer>
+
+<script>
+  const CANONICALS = {
+    "1/2": [[2,4],[3,6],[4,8],[5,10],[6,12]],
+    "1/3": [[2,6],[3,9],[4,12],[5,15]],
+    "2/3": [[4,6],[6,9],[8,12]],
+    "1/4": [[2,8],[3,12]],
+    "3/4": [[6,8],[9,12]],
+    "1/5": [[2,10]],
+    "2/5": [[4,10]],
+    "3/5": [[6,10]],
+    "4/5": [[8,10]],
+    "1/6": [[2,12]],
+    "5/6": [[10,12]],
+    "1/7": [[2,14]],
+    "2/7": [[4,14]],
+    "1/8": [[2,16]],
+    "3/8": [[6,16]],
+    "5/8": [[10,16]],
+    "7/8": [[14,16]],
+    "1/9": [[2,18]],
+    "2/9": [[4,18]],
+    "4/9": [[8,18]],
+    "5/9": [[10,18]],
+    "1/10": [[2,20]],
+    "3/10": [[6,20]],
+    "7/10": [[14,20]]
+  };
+  const CANONICAL_KEYS = Object.keys(CANONICALS);
+
+  let players = 1;
+  let numPairs = 8;
+  let deck = [];
+  let flipped = [];
+  let lock = false;
+  let scores = [];
+  let currentPlayer = 0;
+  let matchesFound = 0;
+
+  const board = document.getElementById('board');
+  const scoreboard = document.getElementById('scoreboard');
+  const statusLine = document.getElementById('statusLine');
+  const winnerBanner = document.getElementById('winnerBanner');
+  const winnerText = document.getElementById('winnerText');
+  const setupPanel = document.getElementById('setupPanel');
+
+  document.querySelectorAll('#playerCountRow .pill-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#playerCountRow .pill-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      players = parseInt(btn.dataset.count);
+      // keep existing scores if a game is in progress; pad new player slots with 0
+      while(scores.length < players) scores.push(0);
+      scores.length = players;
+      if(currentPlayer >= players) currentPlayer = 0;
+      renderScoreboard();
+    });
+  });
+  document.querySelectorAll('#deckSizeRow .pill-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#deckSizeRow .pill-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      numPairs = parseInt(btn.dataset.pairs);
+    });
+  });
+
+  document.getElementById('startBtn').addEventListener('click', startGame);
+  document.getElementById('playAgainBtn').addEventListener('click', startGame);
+
+  function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i],arr[j]]=[arr[j],arr[i]];
+    }
+    return arr;
+  }
+
+  function buildDeck(){
+    const chosenKeys = shuffle(CANONICAL_KEYS.slice()).slice(0, numPairs);
+    let cards = [];
+    chosenKeys.forEach((key, idx)=>{
+      const options = CANONICALS[key];
+      const [num2, den2] = options[Math.floor(Math.random()*options.length)];
+      cards.push({id: idx, text: key});
+      cards.push({id: idx, text: `${num2}/${den2}`});
+    });
+    return shuffle(cards);
+  }
+
+  function fractionsEqual(textA, textB){
+    const [an, ad] = textA.split('/').map(Number);
+    const [bn, bd] = textB.split('/').map(Number);
+    return an * bd === bn * ad;
+  }
+
+  function startGame(){
+    winnerBanner.classList.add('hidden');
+    deck = buildDeck();
+    flipped = [];
+    lock = false;
+    currentPlayer = 0;
+    matchesFound = 0;
+    scores = new Array(players).fill(0);
+    renderScoreboard();
+    renderBoard();
+    statusLine.textContent = players > 1 ? "Player 1's turn — squish two blobs!" : "Squish two blobs to find a match.";
+  }
+
+  function renderScoreboard(){
+    scoreboard.innerHTML = '';
+    for(let p=0; p<players; p++){
+      const div = document.createElement('div');
+      div.className = 'score-card' + (p===currentPlayer && players>1 ? ' turn' : '');
+      div.innerHTML = `
+        ${p===currentPlayer && players>1 ? '<div class="turn-flag">TURN</div>' : ''}
+        <div class="score-name">Player ${p+1}</div>
+        <div class="score-count">${scores[p]}</div>
+      `;
+      scoreboard.appendChild(div);
+    }
+  }
+
+  const SLIME_COLORS = ['slime-green','slime-purple','slime-blue','slime-pink'];
+  const SLIME_EMOJI = ['★','◆','●','▲'];
+
+  function renderBoard(){
+    board.innerHTML = '';
+    deck.forEach((cardData, i)=>{
+      const slot = document.createElement('div');
+      slot.className = 'card-slot';
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.index = i;
+
+      const color = SLIME_COLORS[Math.floor(Math.random()*SLIME_COLORS.length)];
+      const mark = SLIME_EMOJI[Math.floor(Math.random()*SLIME_EMOJI.length)];
+      const delay = (Math.random()*3).toFixed(2);
+      const duration = (3 + Math.random()*1.5).toFixed(2);
+
+      const dripCount = 1 + Math.floor(Math.random()*2); // 1 or 2 drips
+      let dripsHTML = '';
+      for(let d=0; d<dripCount; d++){
+        const side = Math.random() < 0.5 ? 'left' : 'right';
+        const posPct = 8 + Math.random()*20; // 8%-28% from that side
+        const size = 12 + Math.random()*10; // 12%-22% of card size
+        const dropDelay = (Math.random()*3).toFixed(2);
+        dripsHTML += `<span class="drip ${color}" style="${side}:${posPct}%; bottom:-${(size*0.35).toFixed(0)}%; width:${size}%; height:${(size*1.15).toFixed(0)}%; animation-delay:-${dropDelay}s;"></span>`;
+      }
+
+      const [num, den] = cardData.text.split('/');
+      card.innerHTML = `
+        <div class="card-face card-back ${color}" style="animation-delay:-${delay}s, -${delay}s; animation-duration:${duration}s, ${(duration*1.3).toFixed(2)}s;">
+          ${dripsHTML}
+          <span class="mark">${mark}</span>
+        </div>
+        <div class="card-face card-front">
+          <div class="frac"><span class="n">${num}</span><span class="r"></span><span class="d">${den}</span></div>
+        </div>
+      `;
+      card.addEventListener('click', ()=>onCardClick(i, card));
+      slot.appendChild(card);
+      board.appendChild(slot);
+    });
+  }
+
+  function onCardClick(index, cardEl){
+    if(lock) return;
+    if(cardEl.classList.contains('flipped') || cardEl.classList.contains('matched')) return;
+    if(flipped.length === 2) return;
+
+    cardEl.classList.add('squishing');
+    setTimeout(()=>{
+      cardEl.classList.remove('squishing');
+      cardEl.classList.add('flipped');
+    }, 180);
+    flipped.push({index, cardEl});
+
+    if(flipped.length === 2){
+      lock = true;
+      const [a,b] = flipped;
+      const match = fractionsEqual(deck[a.index].text, deck[b.index].text);
+      if(match){
+        setTimeout(()=>{
+          a.cardEl.classList.add('matched');
+          b.cardEl.classList.add('matched');
+          scores[currentPlayer] = (scores[currentPlayer] || 0) + 1;
+          matchesFound++;
+          flipped = [];
+          lock = false;
+          renderScoreboard();
+          statusLine.textContent = players > 1
+            ? `Squishy match! Player ${currentPlayer+1} squishes again.`
+            : "Squishy match! Keep going.";
+          checkWin();
+        }, 500);
+      } else {
+        statusLine.textContent = "Not a match — those blobs don't squish together!";
+        setTimeout(()=>{
+          a.cardEl.classList.remove('flipped');
+          b.cardEl.classList.remove('flipped');
+          flipped = [];
+          lock = false;
+          if(players > 1){
+            currentPlayer = (currentPlayer + 1) % players;
+            renderScoreboard();
+            statusLine.textContent = `Player ${currentPlayer+1}'s turn — squish two blobs!`;
+          } else {
+            statusLine.textContent = "Squish two blobs to find a match.";
+          }
+        }, 900);
+      }
+    }
+  }
+
+  function checkWin(){
+    if(matchesFound === numPairs){
+      let maxScore = Math.max(...scores);
+      let winners = scores.map((s,i)=>({s,i})).filter(o=>o.s===maxScore).map(o=>o.i+1);
+      if(players === 1){
+        winnerText.textContent = `You squished all ${numPairs} pairs!`;
+      } else if(winners.length > 1){
+        winnerText.textContent = `It's a squishy tie between Player ${winners.join(' & Player ')}!`;
+      } else {
+        winnerText.textContent = `Player ${winners[0]} wins with ${maxScore} squishy pairs!`;
+      }
+      winnerBanner.classList.remove('hidden');
+      statusLine.textContent = '';
+    }
+  }
+
+  startGame();
+</script>
+
+</body>
+</html>
