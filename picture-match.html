@@ -228,6 +228,18 @@
     filter: drop-shadow(0 3px 2px rgba(59,42,32,0.15));
   }
 
+  .optFrac {
+    margin-top: 10px;
+    font-family: 'Fredoka', sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    line-height: 1;
+    display: inline-block;
+    width: fit-content;
+  }
+  .optFrac .n { display: block; padding-bottom: 3px; border-bottom: 3px solid var(--ink); }
+  .optFrac .d { display: block; padding-top: 3px; }
+
   .feedback {
     margin-top: 20px;
     border-radius: 16px;
@@ -528,9 +540,10 @@ function render() {
     card.className = 'card';
     card.tabIndex = 0;
     card.setAttribute('role', 'button');
-    card.setAttribute('aria-label', `Picture option ${idx + 1}`);
+    card.setAttribute('aria-label', `Picture showing ${n2} over ${d2}`);
     card.dataset.idx = idx;
-    card.innerHTML = pieSVG(n2, d2, color);
+    const label = level === 2 ? `<div class="optFrac"><span class="n">${n2}</span><span class="d">${d2}</span></div>` : '';
+    card.innerHTML = pieSVG(n2, d2, color) + label;
     card.addEventListener('click', () => onPick(idx));
     card.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(idx); } });
     grid.appendChild(card);
