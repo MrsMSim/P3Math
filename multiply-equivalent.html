@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finding Equivalent Fractions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FBF1DE;
+  --ink: #3B2A20;
+  --ink-soft: #6B584A;
+  --card: #FFFFFF;
+  --plum: #7B3F61;
+  --plum-dark: #5E2F4B;
+  --ring: #E8A63B;
+  --green: #3f9142;
+  --green-bg: #eaf7ea;
+  --red: #c0392b;
+  --red-bg: #fdecea;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  background-image:
+    radial-gradient(circle at 8% 12%, rgba(123,63,97,0.06) 0, transparent 40%),
+    radial-gradient(circle at 92% 88%, rgba(232,166,59,0.10) 0, transparent 40%);
+  font-family: 'Nunito', sans-serif;
+  color: var(--ink);
+  display: flex;
+  justify-content: center;
+  padding: 40px 16px 60px;
+}
+.wrap { width: 100%; max-width: 620px; }
+h1 {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 700;
+  font-size: clamp(26px, 5.5vw, 36px);
+  margin: 0 0 6px;
+  color: var(--plum-dark);
+  text-align: center;
+}
+.subtitle {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0 0 30px;
+}
+
+.panel {
+  background: var(--card);
+  border-radius: 22px;
+  padding: 24px 22px;
+  box-shadow: 0 4px 0 #EEDFC4, 0 4px 14px rgba(59,42,32,0.07);
+}
+
+.setup-group { text-align:center; margin-bottom: 20px; }
+
+.story-intro {
+  display:flex;
+  align-items:flex-start;
+  gap: 12px;
+  background: #FFF6E4;
+  border: 2px solid #F1DDA8;
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 22px;
+  text-align:left;
+}
+.story-intro .mascot { font-size: 34px; line-height:1; flex-shrink:0; }
+.story-intro p { margin:0; font-size: 14px; color: var(--ink-soft); line-height:1.5; }
+.story-intro strong { color: var(--plum-dark); }
+.intro-diagram {
+  background: #FFFDF8;
+  border: 2px solid var(--amber-border, #F1DDA8);
+  border-radius: 16px;
+  padding: 10px 14px 4px;
+  margin-bottom: 22px;
+}
+
+.tray-row {
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.mascot-small { font-size: 26px; line-height:1; }
+.speech-bubble {
+  position:relative;
+  background: #FFF6E4;
+  border: 2px solid #F1DDA8;
+  border-radius: 14px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--plum-dark);
+  font-family:'Fredoka', sans-serif;
+}
+.speech-bubble::before{
+  content:"";
+  position:absolute;
+  left:-7px; top:50%;
+  transform: translateY(-50%);
+  border-width:6px 8px 6px 0;
+  border-style:solid;
+  border-color: transparent #F1DDA8 transparent transparent;
+}
+
+.cookie-tray {
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  min-height: 30px;
+  padding: 8px 10px;
+  background: #FBF1DE;
+  border: 2px dashed #E4CE9F;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+.cookie-tray .cookie-slot {
+  font-size: 18px;
+  opacity: 0.18;
+}
+.cookie-tray .cookie-slot.filled {
+  opacity: 1;
+  animation: cookiePop .35s ease;
+}
+@keyframes cookiePop{
+  0%{ transform: scale(0.3); }
+  60%{ transform: scale(1.25); }
+  100%{ transform: scale(1); }
+}
+
+.setup-group label {
+  display:block;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--plum);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+.pill-row { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+.pill-btn {
+  border: 2px solid var(--plum);
+  background: #fff;
+  color: var(--plum);
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.pill-btn.active { background: var(--plum); color: #fff; }
+
+.big-btn {
+  display:block;
+  margin: 0 auto;
+  background: var(--plum);
+  color: #fff;
+  border: none;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 17px;
+  padding: 12px 30px;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 0 var(--plum-dark);
+}
+.big-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--plum-dark); }
+.big-btn:disabled { opacity:.5; cursor:default; }
+
+.hidden { display:none !important; }
+
+.hud {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom: 18px;
+  font-family:'Fredoka', sans-serif;
+  font-weight:600;
+  color: var(--plum-dark);
+  font-size: 17px;
+}
+.hud .streak { color: var(--ring); }
+.visual-toggle {
+  background: #fff;
+  border: 2px solid var(--plum);
+  color: var(--plum);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 12.5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.visual-toggle.off { opacity: .55; }
+
+.qn-diagram {
+  background: #FFFDF8;
+  border: 2px solid #F1DDA8;
+  border-radius: 16px;
+  padding: 10px 14px 4px;
+  margin: 4px 0 18px;
+  min-height: 0;
+}
+.qn-diagram.hidden { display:none; }
+
+.progress-track {
+  height: 8px;
+  background: #F1E4C8;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 26px;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--plum);
+  border-radius: 999px;
+  transition: width .35s ease;
+}
+
+.question {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap: 18px;
+  margin: 10px 0 30px;
+  flex-wrap: wrap;
+  position: relative;
+  z-index: 2;
+}
+.question-wrap {
+  position: relative;
+  padding: 56px 0 60px;
+}
+.arrow-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity .5s ease;
+  overflow: visible;
+}
+.frac-display {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  font-family:'Fredoka', sans-serif;
+  font-weight:700;
+  font-size: 44px;
+  color: var(--ink);
+  line-height:1;
+}
+.frac-display .bar { width: 54px; height: 4px; background: var(--ink); margin: 6px 0; border-radius:2px; }
+.mult-badge-stack {
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  align-items:center;
+  height: 92px;
+  gap: 0;
+}
+.mult-badge-mini {
+  position: relative;
+  background: var(--ring);
+  color: #fff;
+  font-family:'Fredoka', sans-serif;
+  font-weight:700;
+  font-size: 18px;
+  padding: 5px 12px;
+  border-radius: 9px;
+  line-height:1.4;
+}
+.mult-badge-mini::before {
+  content:"";
+  position:absolute;
+  left:-16px;
+  top:50%;
+  width:14px;
+  height:2.5px;
+  background: var(--ring);
+  transform: translateY(-50%);
+}
+.mult-badge-mini::after {
+  content:"";
+  position:absolute;
+  left:-18px;
+  top:50%;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background: var(--ring);
+  transform: translateY(-50%);
+}
+.equals { font-size: 36px; color: var(--ink-soft); font-weight:700; }
+
+.answer-frac {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap: 8px;
+}
+.answer-frac input {
+  width: 92px;
+  text-align:center;
+  font-family:'Fredoka', sans-serif;
+  font-weight:700;
+  font-size: 32px;
+  color: var(--ink);
+  border: 3px solid #d8c8ac;
+  border-radius: 12px;
+  padding: 8px 4px;
+  background:#fffaf0;
+}
+.answer-frac input:focus { outline:none; border-color: var(--plum); }
+.answer-frac .bar { width: 70px; height: 4px; background: var(--ink); border-radius:2px; }
+.answer-frac input.correct { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+.answer-frac input.wrong { border-color: var(--red); background: var(--red-bg); color: var(--red); }
+
+.feedback {
+  text-align:center;
+  min-height: 26px;
+  font-weight: 700;
+  font-size: 17px;
+  margin-bottom: 16px;
+}
+.feedback.correct { color: var(--green); }
+.feedback.wrong { color: var(--red); }
+
+.action-row { display:flex; justify-content:center; gap:12px; }
+
+.summary { text-align:center; }
+.summary .big-score {
+  font-family:'Fredoka', sans-serif;
+  font-weight:700;
+  font-size: 46px;
+  color: var(--plum-dark);
+  margin: 10px 0 6px;
+}
+.summary p { color: var(--ink-soft); margin: 0 0 22px; }
+
+footer {
+  max-width: 620px;
+  margin: 26px auto 0;
+  text-align:center;
+  font-size: 11.5px;
+  color: #a99a86;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Finding Equivalent Fractions</h1>
+  <p class="subtitle">Multiply the top AND bottom by the same number to make an equivalent fraction.</p>
+
+  <div class="panel">
+
+    <!-- SETUP SCREEN -->
+    <div id="setupScreen">
+      <div class="story-intro">
+        <span class="mascot">🧑‍🍳</span>
+        <p><strong>Baker Mochi</strong> has one batch of cookie dough for the school fair — but needs to cut it into more pieces so more people can share it. The <em>amount</em> of dough never changes, only how many pieces it's cut into! Multiply the numerator <em>and</em> the denominator by the same number to re-cut each piece correctly and fill the tray.</p>
+      </div>
+
+      <div class="intro-diagram">
+        <svg viewBox="0 0 380 240" width="100%" height="240" xmlns="http://www.w3.org/2000/svg" style="max-width:380px;display:block;margin:0 auto;">
+          <!-- Before: 1/3 -->
+          <text x="190" y="20" font-family="Fredoka, sans-serif" font-size="15" font-weight="700" fill="#5E2F4B" text-anchor="middle">1/3 of the dough</text>
+          <g>
+            <rect x="90" y="30" width="200" height="40" rx="6" fill="#FFF8F0" stroke="#5E2F4B" stroke-width="2"/>
+            <rect x="90" y="30" width="66.7" height="40" fill="#7B3F61"/>
+            <line x1="156.7" y1="30" x2="156.7" y2="70" stroke="#5E2F4B" stroke-width="2"/>
+            <line x1="223.3" y1="30" x2="223.3" y2="70" stroke="#5E2F4B" stroke-width="2"/>
+            <rect x="90" y="30" width="200" height="40" rx="6" fill="none" stroke="#5E2F4B" stroke-width="2"/>
+          </g>
+          <text x="190" y="88" font-family="Nunito, sans-serif" font-size="12" fill="#6B584A" text-anchor="middle">1 big piece shaded of 3</text>
+
+          <!-- Arrow pointing down -->
+          <path d="M 190,98 Q 182,118 190,138" fill="none" stroke="#E8A63B" stroke-width="3" marker-end="url(#introArrow)"/>
+          <text x="240" y="122" font-family="Fredoka, sans-serif" font-size="13" font-weight="700" fill="#E8A63B" text-anchor="middle">cut smaller</text>
+          <defs>
+            <marker id="introArrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <path d="M0,0 L8,4 L0,8 Z" fill="#E8A63B"/>
+            </marker>
+          </defs>
+
+          <!-- After: 2/6 (same 200-wide bar directly below, so shaded amount lines up) -->
+          <text x="190" y="150" font-family="Fredoka, sans-serif" font-size="15" font-weight="700" fill="#5E2F4B" text-anchor="middle">2/6 of the dough</text>
+          <g>
+            <rect x="90" y="160" width="200" height="40" rx="6" fill="#FFF8F0" stroke="#5E2F4B" stroke-width="2"/>
+            <rect x="90" y="160" width="66.7" height="40" fill="#7B3F61"/>
+            <line x1="123.3" y1="160" x2="123.3" y2="200" stroke="#5E2F4B" stroke-width="2"/>
+            <line x1="156.7" y1="160" x2="156.7" y2="200" stroke="#5E2F4B" stroke-width="2"/>
+            <line x1="190" y1="160" x2="190" y2="200" stroke="#5E2F4B" stroke-width="2"/>
+            <line x1="223.3" y1="160" x2="223.3" y2="200" stroke="#5E2F4B" stroke-width="2"/>
+            <line x1="256.7" y1="160" x2="256.7" y2="200" stroke="#5E2F4B" stroke-width="2"/>
+            <rect x="90" y="160" width="200" height="40" rx="6" fill="none" stroke="#5E2F4B" stroke-width="2"/>
+          </g>
+          <text x="190" y="218" font-family="Nunito, sans-serif" font-size="12" fill="#6B584A" text-anchor="middle">2 small pieces shaded of 6</text>
+
+          <text x="190" y="232" font-family="Fredoka, sans-serif" font-size="13" font-weight="700" fill="#3B2A20" text-anchor="middle">Same amount of dough — just more, smaller pieces!</text>
+        </svg>
+      </div>
+      <div class="setup-group">
+        <label>Difficulty</label>
+        <div class="pill-row" id="diffRow">
+          <button class="pill-btn active" data-level="easy">Easy</button>
+          <button class="pill-btn" data-level="medium">Medium</button>
+          <button class="pill-btn" data-level="hard">Hard</button>
+        </div>
+      </div>
+      <div class="setup-group">
+        <label>Number of questions</label>
+        <div class="pill-row" id="lenRow">
+          <button class="pill-btn active" data-len="8">8</button>
+          <button class="pill-btn" data-len="12">12</button>
+          <button class="pill-btn" data-len="20">20</button>
+        </div>
+      </div>
+      <div class="setup-group">
+        <label>Helper arrows</label>
+        <div class="pill-row" id="arrowRow">
+          <button class="pill-btn active" data-arrow="fade">Fade as you improve</button>
+          <button class="pill-btn" data-arrow="always">Always show</button>
+          <button class="pill-btn" data-arrow="off">Off</button>
+        </div>
+      </div>
+      <div class="setup-group">
+        <label>Visual model (bar picture)</label>
+        <div class="pill-row" id="visualRow">
+          <button class="pill-btn active" data-visual="on">On</button>
+          <button class="pill-btn" data-visual="off">Off</button>
+        </div>
+      </div>
+      <button class="big-btn" id="startBtn">Start Baking</button>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="gameScreen" class="hidden">
+      <div class="hud">
+        <span id="roundLabel">Question 1 of 8</span>
+        <button class="visual-toggle" id="visualToggleBtn">🖼️ Hide picture</button>
+        <span class="streak" id="streakLabel">🔥 Streak: 0</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+
+      <div class="tray-row">
+        <span class="mascot mascot-small" id="mochiFace">🧑‍🍳</span>
+        <div class="speech-bubble" id="mochiSpeech">Same amount, more pieces — let's cut!</div>
+      </div>
+      <div class="cookie-tray" id="cookieTray"></div>
+
+      <div class="question-wrap" id="questionWrap">
+        <svg id="arrowSvg" class="arrow-svg"></svg>
+        <div class="question">
+          <div class="frac-display" id="qFracDisplay">
+            <span id="qNum">2</span>
+            <span class="bar"></span>
+            <span id="qDen">3</span>
+          </div>
+          <div class="mult-badge-stack">
+            <div class="mult-badge-mini" id="qMultTop">&times;4</div>
+            <div class="mult-badge-mini" id="qMultBottom">&times;4</div>
+          </div>
+          <div class="equals">=</div>
+          <div class="answer-frac">
+            <input type="number" id="ansNum" inputmode="numeric" autocomplete="off">
+            <span class="bar"></span>
+            <input type="number" id="ansDen" inputmode="numeric" autocomplete="off">
+          </div>
+        </div>
+      </div>
+
+      <div class="qn-diagram" id="qnDiagram"></div>
+
+      <p class="feedback" id="feedback"></p>
+
+      <div class="action-row">
+        <button class="big-btn" id="checkBtn">Check</button>
+        <button class="big-btn hidden" id="nextBtn">Next →</button>
+      </div>
+    </div>
+
+    <!-- SUMMARY SCREEN -->
+    <div id="summaryScreen" class="hidden summary">
+      <span class="mascot" id="finalMascot" style="display:block;margin-bottom:6px;">🧑‍🍳✨</span>
+      <h2 style="font-family:'Fredoka',sans-serif;color:var(--plum-dark);margin-bottom:0;" id="finalHeading">The fair is a hit!</h2>
+      <div class="big-score" id="finalScore">6 / 8</div>
+      <p id="finalMessage">You've got the multiply pattern down.</p>
+      <div class="cookie-tray" id="finalTray" style="justify-content:center;"></div>
+      <button class="big-btn" id="playAgainBtn">Bake Another Batch</button>
+    </div>
+
+  </div>
+</div>
+
+<footer>Finding Equivalent Fractions &middot; made for P3&ndash;P4 Mathematics</footer>
+
+<script>
+  const DIFFICULTY = {
+    easy:   { multipliers: [2,3],       dens: [2,3,4,5,6] },
+    medium: { multipliers: [2,3,4],     dens: [3,4,5,6,7,8,9] },
+    hard:   { multipliers: [2,3,4,5,6], dens: [4,5,6,7,8,9,10,11,12] },
+  };
+
+  let level = 'easy';
+  let totalQuestions = 8;
+  let arrowMode = 'fade'; // 'fade' | 'always' | 'off'
+  let arrowOpacity = 1;
+  let visualMode = 'on'; // 'on' | 'off' (setup default)
+  let visualVisible = true; // live toggle state during play
+  let currentIndex = 0;
+  let score = 0;
+  let streak = 0;
+  let current = null; // {num, den, mult, ansNum, ansDen}
+  let answered = false;
+
+  const setupScreen = document.getElementById('setupScreen');
+  const gameScreen = document.getElementById('gameScreen');
+  const summaryScreen = document.getElementById('summaryScreen');
+  const roundLabel = document.getElementById('roundLabel');
+  const streakLabel = document.getElementById('streakLabel');
+  const progressFill = document.getElementById('progressFill');
+  const qNum = document.getElementById('qNum');
+  const qDen = document.getElementById('qDen');
+  const qMultTop = document.getElementById('qMultTop');
+  const qMultBottom = document.getElementById('qMultBottom');
+  const ansNum = document.getElementById('ansNum');
+  const ansDen = document.getElementById('ansDen');
+  const feedback = document.getElementById('feedback');
+  const mochiFace = document.getElementById('mochiFace');
+  const mochiSpeech = document.getElementById('mochiSpeech');
+  const cookieTray = document.getElementById('cookieTray');
+  const qnDiagram = document.getElementById('qnDiagram');
+  const visualToggleBtn = document.getElementById('visualToggleBtn');
+  const checkBtn = document.getElementById('checkBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  document.querySelectorAll('#diffRow .pill-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#diffRow .pill-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      level = btn.dataset.level;
+    });
+  });
+  document.querySelectorAll('#lenRow .pill-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#lenRow .pill-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      totalQuestions = parseInt(btn.dataset.len);
+    });
+  });
+  document.querySelectorAll('#arrowRow .pill-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#arrowRow .pill-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      arrowMode = btn.dataset.arrow;
+    });
+  });
+  document.querySelectorAll('#visualRow .pill-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('#visualRow .pill-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      visualMode = btn.dataset.visual;
+    });
+  });
+
+  visualToggleBtn.addEventListener('click', ()=>{
+    visualVisible = !visualVisible;
+    updateVisualToggleUI();
+    renderQuestionDiagram();
+  });
+  function updateVisualToggleUI(){
+    visualToggleBtn.textContent = visualVisible ? '🖼️ Hide picture' : '🖼️ Show picture';
+    visualToggleBtn.classList.toggle('off', !visualVisible);
+  }
+
+  document.getElementById('startBtn').addEventListener('click', ()=>{
+    currentIndex = 0; score = 0; streak = 0; arrowOpacity = 1;
+    visualVisible = (visualMode === 'on');
+    updateVisualToggleUI();
+    setupScreen.classList.add('hidden');
+    summaryScreen.classList.add('hidden');
+    gameScreen.classList.remove('hidden');
+    buildCookieTray();
+    mochiFace.textContent = '🧑\u200d🍳';
+    mochiSpeech.textContent = "Same amount, more pieces — let's cut!";
+    nextQuestion();
+  });
+  document.getElementById('playAgainBtn').addEventListener('click', ()=>{
+    summaryScreen.classList.add('hidden');
+    setupScreen.classList.remove('hidden');
+  });
+
+  function buildCookieTray(){
+    cookieTray.innerHTML = '';
+    for(let i=0;i<totalQuestions;i++){
+      const slot = document.createElement('span');
+      slot.className = 'cookie-slot';
+      slot.textContent = '🍪';
+      cookieTray.appendChild(slot);
+    }
+  }
+  function fillNextCookie(){
+    const slots = cookieTray.querySelectorAll('.cookie-slot:not(.filled)');
+    if(slots.length) slots[0].classList.add('filled');
+  }
+
+  function randChoice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+  const questionWrap = document.getElementById('questionWrap');
+  const arrowSvg = document.getElementById('arrowSvg');
+
+  function updateArrowOpacity(){
+    if(arrowMode === 'off'){ arrowOpacity = 0; }
+    else if(arrowMode === 'always'){ arrowOpacity = 1; }
+    // 'fade' mode: arrowOpacity is adjusted directly in checkAnswer()
+    arrowSvg.style.opacity = arrowOpacity;
+  }
+
+  function drawArrows(){
+    const wrapRect = questionWrap.getBoundingClientRect();
+    arrowSvg.setAttribute('width', wrapRect.width);
+    arrowSvg.setAttribute('height', wrapRect.height);
+    arrowSvg.setAttribute('viewBox', `0 0 ${wrapRect.width} ${wrapRect.height}`);
+
+    function centerOf(el, edge){
+      const r = el.getBoundingClientRect();
+      const x = r.left + r.width/2 - wrapRect.left;
+      const y = (edge === 'top' ? r.top : r.bottom) - wrapRect.top;
+      return {x, y};
+    }
+
+    const numStart = centerOf(qNum, 'top');
+    const numEnd = centerOf(ansNum, 'top');
+    const denStart = centerOf(qDen, 'bottom');
+    const denEnd = centerOf(ansDen, 'bottom');
+
+    const topArcY = Math.min(numStart.y, numEnd.y) - 40;
+    const botArcY = Math.max(denStart.y, denEnd.y) + 40;
+    const midTopX = (numStart.x + numEnd.x)/2;
+    const midBotX = (denStart.x + denEnd.x)/2;
+    const mult = current ? current.mult : '';
+
+    arrowSvg.innerHTML = `
+      <defs>
+        <marker id="mmArrowhead" markerWidth="9" markerHeight="9" refX="6.5" refY="4.5" orient="auto">
+          <path d="M0,0 L9,4.5 L0,9 Z" fill="#7B3F61"/>
+        </marker>
+      </defs>
+      <path d="M ${numStart.x},${numStart.y-6} Q ${midTopX},${topArcY} ${numEnd.x-16},${numEnd.y-6}"
+            fill="none" stroke="#7B3F61" stroke-width="2.8" marker-end="url(#mmArrowhead)"/>
+      <rect x="${midTopX-26}" y="${topArcY-16}" width="52" height="22" fill="#FBF1DE"/>
+      <text x="${midTopX}" y="${topArcY+1}" font-size="17" font-weight="700" fill="#E8A63B" text-anchor="middle" font-family="Fredoka, sans-serif">&#215;${mult}</text>
+
+      <path d="M ${denStart.x},${denStart.y+6} Q ${midBotX},${botArcY} ${denEnd.x-16},${denEnd.y+6}"
+            fill="none" stroke="#7B3F61" stroke-width="2.8" marker-end="url(#mmArrowhead)"/>
+      <rect x="${midBotX-26}" y="${botArcY-6}" width="52" height="22" fill="#FBF1DE"/>
+      <text x="${midBotX}" y="${botArcY+11}" font-size="17" font-weight="700" fill="#E8A63B" text-anchor="middle" font-family="Fredoka, sans-serif">&#215;${mult}</text>
+    `;
+    updateArrowOpacity();
+  }
+  window.addEventListener('resize', ()=>{ if(current) drawArrows(); });
+
+  function generateQuestion(){
+    const cfg = DIFFICULTY[level];
+    const den = randChoice(cfg.dens);
+    const num = 1 + Math.floor(Math.random() * (den - 1)); // proper fraction, num < den
+    const mult = randChoice(cfg.multipliers);
+    return { num, den, mult, ansNum: num*mult, ansDen: den*mult };
+  }
+
+  function buildSingleBarSVG(x, y, num, den, label){
+    const barW = 200;
+    const segW = barW/den;
+    const shadedW = segW*num;
+    let dividers = '';
+    for(let i=1;i<den;i++){
+      const dx = x + segW*i;
+      dividers += `<line x1="${dx}" y1="${y+10}" x2="${dx}" y2="${y+50}" stroke="#5E2F4B" stroke-width="1.5"/>`;
+    }
+    return `
+      <text x="${x+barW/2}" y="${y}" font-family="Fredoka, sans-serif" font-size="14" font-weight="700" fill="#5E2F4B" text-anchor="middle">${label}</text>
+      <rect x="${x}" y="${y+10}" width="${barW}" height="40" rx="6" fill="#FFF8F0" stroke="#5E2F4B" stroke-width="2"/>
+      <rect x="${x}" y="${y+10}" width="${shadedW}" height="40" fill="#7B3F61"/>
+      ${dividers}
+      <rect x="${x}" y="${y+10}" width="${barW}" height="40" rx="6" fill="none" stroke="#5E2F4B" stroke-width="2"/>
+      <text x="${x+barW/2}" y="${y+68}" font-family="Nunito, sans-serif" font-size="11.5" fill="#6B584A" text-anchor="middle">${num} shaded of ${den}</text>
+    `;
+  }
+
+  function renderQuestionDiagram(revealAfter){
+    if(!visualVisible || !current){
+      qnDiagram.classList.add('hidden');
+      qnDiagram.innerHTML = '';
+      return;
+    }
+    qnDiagram.classList.remove('hidden');
+    if(!revealAfter){
+      // Before only — show the starting fraction, don't give away the answer
+      qnDiagram.innerHTML = `
+        <svg viewBox="0 0 240 100" width="240" height="100" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto;">
+          ${buildSingleBarSVG(20, 20, current.num, current.den, `${current.num}/${current.den}`)}
+        </svg>`;
+    } else {
+      // After answering — stack both bars vertically so the shaded amounts line up directly
+      qnDiagram.innerHTML = `
+        <svg viewBox="0 0 240 210" width="240" height="210" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto;">
+          ${buildSingleBarSVG(20, 15, current.num, current.den, `${current.num}/${current.den}`)}
+          <path d="M 120,90 Q 95,106 120,122" fill="none" stroke="#E8A63B" stroke-width="2.5" marker-end="url(#qnArrow)"/>
+          <defs><marker id="qnArrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#E8A63B"/></marker></defs>
+          ${buildSingleBarSVG(20, 128, current.ansNum, current.ansDen, `${current.ansNum}/${current.ansDen}`)}
+        </svg>`;
+    }
+  }
+
+  function nextQuestion(){
+    if(currentIndex >= totalQuestions){
+      showSummary();
+      return;
+    }
+    answered = false;
+    current = generateQuestion();
+    qNum.textContent = current.num;
+    qDen.textContent = current.den;
+    qMultTop.textContent = `\u00D7${current.mult}`;
+    qMultBottom.textContent = `\u00D7${current.mult}`;
+    ansNum.value = '';
+    ansDen.value = '';
+    ansNum.classList.remove('correct','wrong');
+    ansDen.classList.remove('correct','wrong');
+    ansNum.disabled = false;
+    ansDen.disabled = false;
+    feedback.textContent = '';
+    feedback.className = 'feedback';
+    checkBtn.classList.remove('hidden');
+    nextBtn.classList.add('hidden');
+    roundLabel.textContent = `Question ${currentIndex+1} of ${totalQuestions}`;
+    streakLabel.textContent = `🔥 Streak: ${streak}`;
+    progressFill.style.width = `${(currentIndex/totalQuestions)*100}%`;
+    renderQuestionDiagram(false);
+    requestAnimationFrame(drawArrows);
+    ansNum.focus();
+  }
+
+  function checkAnswer(){
+    if(answered) return;
+    answered = true;
+    const userNum = parseInt(ansNum.value);
+    const userDen = parseInt(ansDen.value);
+    const numOK = userNum === current.ansNum;
+    const denOK = userDen === current.ansDen;
+
+    ansNum.classList.add(numOK ? 'correct' : 'wrong');
+    ansDen.classList.add(denOK ? 'correct' : 'wrong');
+    ansNum.disabled = true;
+    ansDen.disabled = true;
+
+    const MOCHI_WINS = [
+      "Yes! Same amount, cut just right!", "Perfect — same dough, more pieces!", "The tray's filling up nicely!",
+      "You've got the pattern down!", "Sliced perfectly — nothing added or taken away!"
+    ];
+    const MOCHI_MISS = [
+      "Oops, that cut wasn't even. Try the next one!", "Careful — both numbers need the same multiplier!",
+      "Almost! The amount changed when it shouldn't have.", "That one needs a re-cut — try again next round!"
+    ];
+
+    if(numOK && denOK){
+      score++; streak++;
+      feedback.textContent = "Correct! You multiplied both parts by the same number.";
+      feedback.className = 'feedback correct';
+      mochiFace.textContent = '🧑\u200d🍳✨';
+      mochiSpeech.textContent = MOCHI_WINS[Math.floor(Math.random()*MOCHI_WINS.length)];
+      fillNextCookie();
+      if(arrowMode === 'fade'){
+        arrowOpacity = Math.max(0, arrowOpacity - 0.25);
+        arrowSvg.style.opacity = arrowOpacity;
+      }
+    } else {
+      streak = 0;
+      feedback.textContent = `Not quite. ${current.num}/${current.den} \u00D7 ${current.mult} = ${current.ansNum}/${current.ansDen}`;
+      feedback.className = 'feedback wrong';
+      mochiFace.textContent = '🧑\u200d🍳';
+      mochiSpeech.textContent = MOCHI_MISS[Math.floor(Math.random()*MOCHI_MISS.length)];
+      if(arrowMode === 'fade'){
+        arrowOpacity = 1; // re-scaffold after a mistake
+        arrowSvg.style.opacity = arrowOpacity;
+      }
+    }
+    streakLabel.textContent = `🔥 Streak: ${streak}`;
+    renderQuestionDiagram(true);
+    checkBtn.classList.add('hidden');
+    nextBtn.classList.remove('hidden');
+    nextBtn.focus();
+  }
+
+  checkBtn.addEventListener('click', checkAnswer);
+  nextBtn.addEventListener('click', ()=>{
+    currentIndex++;
+    nextQuestion();
+  });
+  [ansNum, ansDen].forEach(inp=>{
+    inp.addEventListener('keydown', (e)=>{
+      if(e.key === 'Enter'){
+        if(!answered) checkAnswer();
+        else { currentIndex++; nextQuestion(); }
+      }
+    });
+  });
+
+  function showSummary(){
+    gameScreen.classList.add('hidden');
+    summaryScreen.classList.remove('hidden');
+    progressFill.style.width = '100%';
+    document.getElementById('finalScore').textContent = `${score} / ${totalQuestions}`;
+    const pct = score/totalQuestions;
+    let msg, heading, mascotMood;
+    if(pct === 1){
+      heading = "The fair is a sell-out!"; mascotMood = '🧑\u200d🍳🎉';
+      msg = "Perfect score! Every piece stayed the exact same amount, just cut smaller.";
+    } else if(pct >= 0.8){
+      heading = "The stall is looking great!"; mascotMood = '🧑\u200d🍳✨';
+      msg = "Great job — you've got the multiply pattern down.";
+    } else if(pct >= 0.5){
+      heading = "Most pieces cut just right!"; mascotMood = '🧑\u200d🍳';
+      msg = "Good progress! A little more practice and you'll have it.";
+    } else {
+      heading = "A few pieces need re-cutting."; mascotMood = '🧑\u200d🍳';
+      msg = "Keep practising the multiply pattern — you'll get faster!";
+    }
+    document.getElementById('finalHeading').textContent = heading;
+    document.getElementById('finalMascot').textContent = mascotMood;
+    document.getElementById('finalMessage').textContent = msg;
+
+    const finalTray = document.getElementById('finalTray');
+    finalTray.innerHTML = '';
+    for(let i=0;i<totalQuestions;i++){
+      const slot = document.createElement('span');
+      slot.className = 'cookie-slot' + (i < score ? ' filled' : '');
+      slot.textContent = '🍪';
+      finalTray.appendChild(slot);
+    }
+  }
+</script>
+</body>
+</html>
