@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fraction Detective Agency</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Baloo+2:wght@600;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#233142;
+    --navy-light:#334257;
+    --gold:#f2b84b;
+    --gold-dark:#d99a2b;
+    --cream:#fdf6e9;
+    --red:#e0554f;
+    --green:#4ea672;
+    --blue:#4a90c4;
+    --paper:#fffdf7;
+    --line:#d8cdb4;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Atkinson Hyperlegible', sans-serif;
+    background:linear-gradient(180deg,var(--navy) 0%, var(--navy-light) 260px, var(--cream) 260px);
+    min-height:100vh;
+    color:var(--navy);
+    padding-bottom:40px;
+  }
+  header{
+    text-align:center;
+    padding:28px 16px 18px;
+    color:var(--cream);
+  }
+  header h1{
+    font-family:'Baloo 2', sans-serif;
+    font-size:clamp(1.6rem,5vw,2.4rem);
+    margin:0 0 6px;
+    letter-spacing:0.5px;
+  }
+  header h1 span{color:var(--gold);}
+  header p{margin:0;font-size:1.05rem;opacity:0.9;}
+
+  .stats-bar{
+    max-width:640px;
+    margin:-20px auto 0;
+    background:var(--paper);
+    border:3px solid var(--navy);
+    border-radius:var(--radius);
+    display:flex;
+    justify-content:space-around;
+    padding:12px 10px;
+    box-shadow:0 6px 0 rgba(35,49,66,0.15);
+    position:relative;
+    z-index:2;
+  }
+  .stat{text-align:center;}
+  .stat .num{font-family:'Baloo 2',sans-serif;font-size:1.5rem;color:var(--navy);}
+  .stat .lbl{font-size:0.75rem;text-transform:uppercase;letter-spacing:0.06em;color:#7a6f56;}
+
+  main{
+    max-width:640px;
+    margin:24px auto;
+    padding:0 16px;
+  }
+
+  .case-file{
+    background:var(--paper);
+    border:3px solid var(--navy);
+    border-radius:var(--radius);
+    padding:26px 22px;
+    box-shadow:0 6px 0 rgba(35,49,66,0.15);
+    position:relative;
+  }
+  .case-number{
+    position:absolute;
+    top:-14px; left:20px;
+    background:var(--gold);
+    border:3px solid var(--navy);
+    border-radius:20px;
+    padding:2px 14px;
+    font-family:'Baloo 2',sans-serif;
+    font-weight:800;
+    font-size:0.95rem;
+  }
+
+  .fraction-display{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap:26px;
+    margin:26px 0 8px;
+    flex-wrap:wrap;
+  }
+  .frac{
+    font-family:'Baloo 2',sans-serif;
+    font-size:3.2rem;
+    line-height:1;
+    text-align:center;
+    background:var(--cream);
+    border:3px solid var(--navy);
+    border-radius:14px;
+    padding:10px 26px;
+  }
+  .frac .num-line{border-bottom:4px solid var(--navy); padding:0 6px 4px;}
+  .frac .den-line{padding:4px 6px 0;}
+  .arrow{font-size:2rem;color:var(--gold-dark);}
+
+  .divide-mid{
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    align-self:stretch;
+    align-items:center;
+    padding:6px 0;
+    gap:8px;
+  }
+  .divide-row{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-family:'Baloo 2',sans-serif;
+    font-weight:800;
+    font-size:1.15rem;
+    color:var(--navy);
+    white-space:nowrap;
+  }
+  .divide-row .op{color:var(--gold-dark);}
+  .divide-row .arrow-sm{color:var(--gold-dark); font-size:1.1rem;}
+
+  .result-map{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+    margin:22px 0 8px;
+  }
+  .result-map .divide-mid.vertical{
+    align-self:auto;
+    justify-content:center;
+    padding:0;
+    gap:4px;
+  }
+  .result-map .arrow-down{
+    font-size:1.8rem;
+    color:var(--gold-dark);
+    line-height:1;
+  }
+
+  .compare-bars{
+    max-width:460px;
+    margin:22px auto 4px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+  .compare-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+  }
+  .compare-label{
+    flex-shrink:0;
+    width:52px;
+    text-align:center;
+  }
+  .compare-bar-wrap{flex:1;}
+  .compare-caption{
+    text-align:center;
+    font-size:0.9rem;
+    color:#6b6252;
+    font-weight:700;
+    margin-top:4px;
+  }
+
+  .inline-frac{
+    display:inline-flex;
+    flex-direction:column;
+    align-items:center;
+    vertical-align:middle;
+    font-family:'Baloo 2',sans-serif;
+    font-weight:800;
+    font-size:1em;
+    line-height:1.15;
+    margin:0 3px;
+    transform:translateY(2px);
+  }
+  .inline-frac .n{border-bottom:2px solid currentColor; padding:0 3px;}
+  .inline-frac .d{padding:0 3px;}
+
+  .bar-wrap{margin:18px auto 8px; max-width:420px;}
+  .bar{
+    display:flex;
+    height:38px;
+    border:3px solid var(--navy);
+    border-radius:8px;
+    overflow:hidden;
+  }
+  .bar .seg{flex:1;border-right:2px solid var(--navy);}
+  .bar .seg:last-child{border-right:none;}
+  .seg.filled{background:var(--blue);}
+  .seg.empty{background:var(--cream);}
+  .bar-caption{text-align:center;font-size:0.85rem;color:#6b6252;margin-top:6px;}
+
+  .prompt{
+    text-align:center;
+    font-size:1.15rem;
+    font-weight:700;
+    margin:18px 0 16px;
+  }
+
+  .choice-row{
+    display:flex;
+    gap:14px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin-bottom:6px;
+  }
+  button.choice{
+    font-family:'Atkinson Hyperlegible',sans-serif;
+    font-weight:700;
+    font-size:1.05rem;
+    padding:14px 28px;
+    border-radius:12px;
+    border:3px solid var(--navy);
+    background:var(--paper);
+    cursor:pointer;
+    transition:transform 0.08s ease;
+    box-shadow:0 4px 0 rgba(35,49,66,0.25);
+  }
+  button.choice:hover{transform:translateY(-2px);}
+  button.choice:active{transform:translateY(2px); box-shadow:0 1px 0 rgba(35,49,66,0.25);}
+  button.choice.yes{background:#e4f4ea;}
+  button.choice.no{background:#fdecea;}
+  button.choice:disabled, button.gcf-btn:disabled{opacity:0.4; cursor:not-allowed; transform:none;}
+
+  .factor-hint{
+    background:var(--cream);
+    border:2px dashed var(--gold-dark);
+    border-radius:12px;
+    padding:14px 16px;
+    margin:14px 0;
+    font-size:0.98rem;
+  }
+  .factor-hint b{color:var(--navy);}
+  .factor-lists{display:flex; justify-content:space-around; gap:12px; margin-top:8px; flex-wrap:wrap;}
+  .factor-col{text-align:center;}
+  .factor-col .tag{font-size:0.75rem; text-transform:uppercase; color:#7a6f56; margin-bottom:4px;}
+  .factor-col .vals{font-family:'Baloo 2',sans-serif; font-size:1.05rem;}
+
+  .gcf-grid{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    flex-wrap:wrap;
+    margin:14px 0 6px;
+  }
+  button.gcf-btn{
+    font-family:'Baloo 2',sans-serif;
+    font-size:1.2rem;
+    width:56px; height:56px;
+    border-radius:50%;
+    border:3px solid var(--navy);
+    background:var(--paper);
+    cursor:pointer;
+    box-shadow:0 4px 0 rgba(35,49,66,0.25);
+  }
+  button.gcf-btn:hover{transform:translateY(-2px);}
+  button.gcf-btn.correct{background:var(--green); color:white;}
+  button.gcf-btn.wrong{background:var(--red); color:white;}
+
+  .feedback{
+    text-align:center;
+    font-weight:700;
+    font-size:1.05rem;
+    margin:14px 0;
+    min-height:1.4em;
+  }
+  .feedback.good{color:var(--green);}
+  .feedback.bad{color:var(--red);}
+
+  .division-step{
+    text-align:center;
+    font-size:1.4rem;
+    font-family:'Baloo 2',sans-serif;
+    margin:14px 0;
+  }
+
+  .next-btn-wrap{text-align:center; margin-top:18px;}
+  button.next{
+    font-family:'Baloo 2',sans-serif;
+    font-weight:800;
+    font-size:1.05rem;
+    padding:12px 34px;
+    border-radius:30px;
+    border:3px solid var(--navy);
+    background:var(--gold);
+    cursor:pointer;
+    box-shadow:0 4px 0 rgba(35,49,66,0.25);
+  }
+  button.next:hover{transform:translateY(-2px);}
+
+  .end-screen{
+    text-align:center;
+  }
+  .badge{
+    width:130px; height:130px;
+    margin:10px auto 18px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #ffe6a3, var(--gold) 70%);
+    border:5px solid var(--navy);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:3.2rem;
+    box-shadow:0 6px 0 rgba(35,49,66,0.25);
+  }
+  .reset-btn{
+    font-family:'Baloo 2',sans-serif;
+    font-weight:800;
+    padding:12px 28px;
+    border-radius:30px;
+    border:3px solid var(--navy);
+    background:var(--paper);
+    cursor:pointer;
+    margin-top:10px;
+    box-shadow:0 4px 0 rgba(35,49,66,0.25);
+  }
+
+  .learn-box{
+    background:#eaf2f8;
+    border:2px solid var(--blue);
+    border-radius:12px;
+    padding:14px 16px;
+    margin-bottom:20px;
+    font-size:0.98rem;
+  }
+  .learn-box b{color:var(--navy);}
+
+  .progress-track{
+    height:10px;
+    background:#e6ddc4;
+    border-radius:6px;
+    overflow:hidden;
+    margin-bottom:18px;
+    border:2px solid var(--navy);
+  }
+  .progress-fill{
+    height:100%;
+    background:var(--gold);
+    width:0%;
+    transition:width 0.3s ease;
+  }
+
+  footer{
+    text-align:center;
+    color:#9a8f74;
+    font-size:0.8rem;
+    margin-top:26px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🕵️ Fraction <span>Detective</span> Agency</h1>
+  <p>Case files: is this fraction hiding a simpler identity?</p>
+</header>
+
+<div class="stats-bar">
+  <div class="stat"><div class="num" id="statCases">0/10</div><div class="lbl">Cases</div></div>
+  <div class="stat"><div class="num" id="statSolved">0</div><div class="lbl">Solved</div></div>
+  <div class="stat"><div class="num" id="statStreak">0</div><div class="lbl">Streak</div></div>
+</div>
+
+<main>
+  <div class="learn-box">
+    <b>Detective's rule:</b> a fraction is in <b>simplest form</b> when the top number and bottom number <b>cannot be divided by the same number</b> (other than 1). If they can, the fraction can be reduced!
+  </div>
+
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="case-file" id="caseFile"></div>
+
+  <footer>Mrs Sim's Classroom Tools · mrsmsim.github.io</footer>
+</main>
+
+<script>
+// A larger pool of fractions to draw from, so students get fresh cases each round
+const fractionPool = [
+  {n:2,d:4}, {n:3,d:5}, {n:5,d:10}, {n:4,d:6}, {n:7,d:10},
+  {n:6,d:8}, {n:2,d:3}, {n:8,d:12}, {n:5,d:6}, {n:9,d:12},
+  {n:3,d:9}, {n:7,d:9}, {n:4,d:9}, {n:10,d:12}, {n:3,d:4},
+  {n:6,d:9}, {n:5,d:9}, {n:4,d:5}, {n:6,d:10}, {n:9,d:15},
+  {n:3,d:8}, {n:10,d:14}, {n:4,d:8}, {n:12,d:16}, {n:2,d:6},
+  {n:8,d:10}, {n:5,d:8}, {n:7,d:8}, {n:6,d:12}, {n:10,d:15}
+];
+
+function shuffleArray(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+
+let poolQueue = [];
+let cases = [];
+let round = 1;
+
+function drawNewBatch(){
+  if(poolQueue.length < 10){
+    poolQueue = shuffleArray([...fractionPool]);
+  }
+  cases = poolQueue.splice(0, 10);
+}
+
+drawNewBatch();
+
+let idx = 0;
+let solved = 0;
+let streak = 0;
+let stage = "ask"; // ask -> (if not simplest) gcf -> result
+
+function gcf(a,b){ return b===0 ? a : gcf(b, a % b); }
+
+function factorsOf(n){
+  const f=[];
+  for(let i=1;i<=n;i++){ if(n % i === 0) f.push(i); }
+  return f;
+}
+
+function updateStats(){
+  document.getElementById('statCases').textContent = Math.min(idx,cases.length) + "/" + cases.length;
+  document.getElementById('statSolved').textContent = solved;
+  document.getElementById('statStreak').textContent = streak;
+  document.getElementById('progressFill').style.width = (Math.min(idx,cases.length)/cases.length*100) + "%";
+}
+
+function inlineFrac(n,d){
+  return `<span class="inline-frac"><span class="n">${n}</span><span class="d">${d}</span></span>`;
+}
+
+function fracHTML(n,d,size){
+  size = size || "";
+  return `<div class="frac ${size}"><div class="num-line">${n}</div><div class="den-line">${d}</div></div>`;
+}
+
+function barHTML(n,d){
+  let segs = "";
+  for(let i=0;i<d;i++){
+    segs += `<div class="seg ${i<n?'filled':'empty'}"></div>`;
+  }
+  return `<div class="bar-wrap"><div class="bar">${segs}</div><div class="bar-caption">${n} out of ${d} parts shaded</div></div>`;
+}
+
+function renderCase(){
+  if(idx >= cases.length){ renderEnd(); return; }
+  const c = cases[idx];
+  const simplest = gcf(c.n,c.d) === 1;
+  stage = "ask";
+
+  const html = `
+    <div class="case-number">Case #${idx+1}</div>
+    ${barHTML(c.n,c.d)}
+    <div class="fraction-display">${fracHTML(c.n,c.d)}</div>
+    <div class="prompt">Detective, is this fraction already in simplest form?</div>
+    <div class="choice-row">
+      <button class="choice yes" onclick="answerAsk(true, this)">Yes — Simplest Form</button>
+      <button class="choice no" onclick="answerAsk(false, this)">No — Can Be Reduced</button>
+    </div>
+    <div class="feedback" id="feedback"></div>
+  `;
+  document.getElementById('caseFile').innerHTML = html;
+  updateStats();
+}
+
+function answerAsk(userSaysYes, btnEl){
+  const c = cases[idx];
+  const simplest = gcf(c.n,c.d) === 1;
+  const correct = (userSaysYes === simplest);
+  const fb = document.getElementById('feedback');
+
+  if(!correct){
+    // Wrong guess: disable only this option and let them try again
+    btnEl.disabled = true;
+    fb.className = "feedback bad";
+    fb.textContent = "Not quite — give it another try.";
+    streak = 0;
+    updateStats();
+    return;
+  }
+
+  document.querySelectorAll('button.choice').forEach(b=>b.disabled=true);
+
+  if(simplest){
+    fb.className = "feedback good";
+    fb.innerHTML = `Correct! You can't divide the top and bottom of ${inlineFrac(c.n,c.d)} by the same number — case closed.`;
+    solved++; streak++;
+    showNextButton();
+    updateStats();
+  } else {
+    fb.className = "feedback good";
+    fb.innerHTML = `Good eye! ${inlineFrac(c.n,c.d)} can be reduced. Let's find a number to divide by.`;
+    solved++; streak++;
+    updateStats();
+    setTimeout(()=>renderGCF(c), 700);
+  }
+}
+
+function renderGCF(c){
+  stage = "gcf";
+  const nFactors = factorsOf(c.n);
+  const dFactors = factorsOf(c.d);
+  const common = nFactors.filter(f=>dFactors.includes(f));
+  const trueGCF = gcf(c.n,c.d);
+
+  // build option buttons: correct answer + a few extra numbers that do NOT work, for more choices
+  let options = new Set(common);
+  options.add(trueGCF);
+  const cap = Math.max(c.n, c.d) + 4;
+  let candidate = 2;
+  let extraNeeded = 2; // add two more distractors beyond the common factors
+  while(extraNeeded > 0 && candidate <= cap){
+    if(!options.has(candidate)){
+      options.add(candidate);
+      extraNeeded--;
+    }
+    candidate++;
+  }
+  const optArr = Array.from(options).filter(o => o !== 1).sort((a,b)=>a-b);
+
+  const html = `
+    <div class="case-number">Case #${idx+1}</div>
+    <div class="fraction-display">${fracHTML(c.n,c.d)}</div>
+    <div class="factor-hint">
+      <b>Numbers that divide evenly into each part:</b>
+      <div class="factor-lists">
+        <div class="factor-col"><div class="tag">Goes into ${c.n} evenly</div><div class="vals">${nFactors.join(", ")}</div></div>
+        <div class="factor-col"><div class="tag">Goes into ${c.d} evenly</div><div class="vals">${dFactors.join(", ")}</div></div>
+      </div>
+    </div>
+    <div class="prompt">Tap the <u>biggest number</u> that divides evenly into <b>both</b> the top and bottom.</div>
+    <div class="gcf-grid" id="gcfGrid">
+      ${optArr.map(o=>`<button class="gcf-btn" onclick="answerGCF(${o},${trueGCF},this)">${o}</button>`).join("")}
+    </div>
+    <div class="feedback" id="feedback"></div>
+  `;
+  document.getElementById('caseFile').innerHTML = html;
+}
+
+function answerGCF(chosen, trueGCF, btnEl){
+  const fb = document.getElementById('feedback');
+  if(chosen === trueGCF){
+    document.querySelectorAll('.gcf-btn').forEach(b=>b.disabled=true);
+    btnEl.classList.add('correct');
+    fb.className = "feedback good";
+    fb.textContent = `Yes! ${trueGCF} is the biggest number that works. Dividing both parts by ${trueGCF}...`;
+    solved++; streak++;
+    updateStats();
+    setTimeout(()=>renderResult(cases[idx], trueGCF), 900);
+  } else {
+    btnEl.classList.add('wrong');
+    btnEl.disabled = true;
+    fb.className = "feedback bad";
+    fb.textContent = `${chosen} divides both evenly, but it isn't the biggest number that works. Try again!`;
+    streak = 0;
+    updateStats();
+  }
+}
+
+function compareBarRow(n,d){
+  let segs = "";
+  for(let i=0;i<d;i++){
+    segs += `<div class="seg ${i<n?'filled':'empty'}"></div>`;
+  }
+  return `
+    <div class="compare-row">
+      <div class="compare-label">${inlineFrac(n,d)}</div>
+      <div class="compare-bar-wrap"><div class="bar">${segs}</div></div>
+    </div>
+  `;
+}
+
+function renderResult(c, g){
+  stage = "result";
+  const newN = c.n / g;
+  const newD = c.d / g;
+  const html = `
+    <div class="case-number">Case #${idx+1} — Solved</div>
+    <div class="fraction-display">
+      ${fracHTML(c.n,c.d)}
+      <div class="divide-mid">
+        <div class="divide-row">${c.n} <span class="op">÷ ${g}</span> <span class="arrow-sm">→</span> ${newN}</div>
+        <div class="divide-row">${c.d} <span class="op">÷ ${g}</span> <span class="arrow-sm">→</span> ${newD}</div>
+      </div>
+      ${fracHTML(newN,newD)}
+    </div>
+    <div class="compare-bars">
+      ${compareBarRow(c.n,c.d)}
+      ${compareBarRow(newN,newD)}
+    </div>
+    <div class="compare-caption">Same amount, shown two ways!</div>
+    <div class="prompt">Case closed! ${inlineFrac(c.n,c.d)} simplifies to ${inlineFrac(newN,newD)}</div>
+  `;
+  document.getElementById('caseFile').innerHTML = html;
+  updateStats();
+  showNextButton();
+}
+
+function showNextButton(){
+  const wrap = document.createElement('div');
+  wrap.className = "next-btn-wrap";
+  wrap.innerHTML = `<button class="next" onclick="nextCase()">${idx < cases.length-1 ? "Next Case →" : "See My Results →"}</button>`;
+  document.getElementById('caseFile').appendChild(wrap);
+}
+
+function nextCase(){
+  idx++;
+  renderCase();
+}
+
+function renderEnd(){
+  const pct = Math.round((solved / (cases.length*1.4)) * 100); // rough scoring since some cases have 2 sub-answers
+  let title, emoji;
+  if(solved >= cases.length){ title = "Master Detective!"; emoji = "🏆"; }
+  else if(solved >= cases.length*0.7){ title = "Sharp-Eyed Detective"; emoji = "🔍"; }
+  else { title = "Detective in Training"; emoji = "🧭"; }
+
+  document.getElementById('caseFile').innerHTML = `
+    <div class="end-screen">
+      <div class="badge">${emoji}</div>
+      <h2 style="font-family:'Baloo 2',sans-serif; margin:0 0 6px;">${title}</h2>
+      <p>You closed ${solved} out of ${cases.length} cases correctly. Nice detective work!</p>
+      <button class="reset-btn" onclick="restart()">🕵️ Open 10 New Case Files</button>
+    </div>
+  `;
+  document.getElementById('progressFill').style.width = "100%";
+}
+
+function restart(){
+  idx = 0; solved = 0; streak = 0; round++;
+  drawNewBatch();
+  renderCase();
+}
+
+renderCase();
+</script>
+
+</body>
+</html>
