@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Baker Mochi's Fraction Bakery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#FFF8EC;
+    --card:#FFFFFF;
+    --crust:#5B3A29;
+    --crust-light:#8B6650;
+    --pink:#E8909E;
+    --pink-deep:#D97488;
+    --custard:#F0B429;
+    --custard-deep:#D99A16;
+    --green:#7FA65A;
+    --green-deep:#658849;
+    --gold:#E8A33D;
+    --red:#D9705A;
+    --cream-slice:#FFF3DD;
+    --line:#E8D9C0;
+    --radius:18px;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(circle at 10% 10%, #FFFDF7 0%, transparent 45%),
+      radial-gradient(circle at 90% 90%, #FFF1D9 0%, transparent 45%),
+      var(--bg);
+    min-height:100vh;
+    font-family:'Atkinson Hyperlegible', sans-serif;
+    color:var(--crust);
+    padding:20px 14px 60px;
+  }
+  h1,h2,h3,.display{font-family:'Baloo 2', sans-serif;}
+
+  /* ---------- header ---------- */
+  .wrap{max-width:760px;margin:0 auto;}
+  .header{
+    display:flex;align-items:center;gap:14px;justify-content:space-between;
+    background:var(--card);
+    border:3px solid var(--crust);
+    border-radius:var(--radius);
+    padding:14px 18px;
+    box-shadow:0 4px 0 var(--line);
+    margin-bottom:18px;
+    flex-wrap:wrap;
+  }
+  .header-left{display:flex;align-items:center;gap:12px;}
+  .mascot{width:56px;height:56px;flex:none;}
+  .header-title{display:flex;flex-direction:column;line-height:1.15;}
+  .header-title .display{font-size:1.35rem;font-weight:800;color:var(--crust);}
+  .header-title span.sub{font-size:.82rem;color:var(--crust-light);font-weight:400;}
+  .progress-dots{display:flex;gap:6px;flex-wrap:wrap;max-width:220px;justify-content:flex-end;}
+  .dot{
+    width:16px;height:16px;border-radius:50%;
+    background:var(--cream-slice);
+    border:2px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    font-size:9px;
+    transition:transform .2s ease;
+  }
+  .dot.current{border-color:var(--gold);box-shadow:0 0 0 3px rgba(232,163,61,.25);transform:scale(1.15);}
+  .dot.done{background:var(--green);border-color:var(--green-deep);color:#fff;}
+
+  /* ---------- intro ---------- */
+  .card{
+    background:var(--card);
+    border:3px solid var(--crust);
+    border-radius:var(--radius);
+    padding:26px 24px;
+    box-shadow:0 5px 0 var(--line);
+  }
+  .intro-mascot{width:110px;height:110px;display:block;margin:0 auto 10px;}
+  .speech{
+    background:var(--cream-slice);
+    border:2px dashed var(--custard-deep);
+    border-radius:14px;
+    padding:14px 18px;
+    font-size:1.02rem;
+    margin:14px 0;
+    position:relative;
+  }
+  .btn{
+    font-family:'Baloo 2', sans-serif;
+    font-weight:700;
+    font-size:1rem;
+    border:3px solid var(--crust);
+    border-radius:14px;
+    padding:12px 22px;
+    cursor:pointer;
+    background:var(--gold);
+    color:var(--crust);
+    box-shadow:0 4px 0 var(--custard-deep);
+    transition:transform .08s ease, box-shadow .08s ease;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--custard-deep);}
+  .btn:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none;}
+  .btn.secondary{background:var(--card);box-shadow:0 4px 0 var(--line);}
+  .btn.green{background:var(--green);box-shadow:0 4px 0 var(--green-deep);color:#fff;}
+  .btn-row{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px;}
+  .center{text-align:center;}
+
+  /* ---------- recipe card ---------- */
+  .recipe-label{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:'Baloo 2';font-weight:700;
+    background:var(--pink);color:#fff;
+    padding:5px 14px;border-radius:999px;
+    font-size:.85rem;margin-bottom:10px;
+  }
+  .story{
+    font-size:1.08rem;
+    line-height:1.55;
+    border-left:5px solid var(--custard);
+    padding:6px 6px 6px 16px;
+    margin:8px 0 18px;
+  }
+  .story b{color:var(--pink-deep);}
+
+  .equation{
+    display:flex;align-items:center;justify-content:center;gap:14px;
+    flex-wrap:wrap;
+    margin:18px 0 22px;
+  }
+  .frac-card{
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:var(--cream-slice);
+    border:3px solid var(--crust);
+    border-radius:14px;
+    width:82px;height:82px;
+    font-family:'Baloo 2';font-weight:700;font-size:1.5rem;
+    cursor:default;
+    transition:box-shadow .15s ease, transform .15s ease, background .2s ease;
+    position:relative;
+  }
+  .frac-card .num{padding-bottom:4px;border-bottom:3px solid var(--crust);width:60%;text-align:center;}
+  .frac-card .den{padding-top:4px;text-align:center;width:60%;}
+  .frac-card.clickable{cursor:pointer;}
+  .frac-card.clickable:hover{transform:translateY(-3px);box-shadow:0 4px 0 var(--line);}
+  .frac-card.selected{background:var(--gold);border-color:var(--custard-deep);}
+  .frac-card.locked{background:var(--green);color:#fff;border-color:var(--green-deep);}
+  .frac-card.locked .num{border-bottom-color:#fff;}
+  .frac-card.shake{animation:shake .35s;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    25%{transform:translateX(-6px);}
+    75%{transform:translateX(6px);}
+  }
+  .op-symbol, .eq-symbol{font-family:'Baloo 2';font-weight:800;font-size:1.8rem;color:var(--crust-light);}
+  .answer-box{
+    min-width:82px;min-height:56px;
+    border:3px dashed var(--crust-light);
+    border-radius:14px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Baloo 2';font-weight:700;font-size:1.2rem;
+    color:var(--crust-light);
+    padding:8px 12px;
+    background:var(--cream-slice);
+  }
+
+  /* ---------- step tracker ---------- */
+  .steps{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:0 0 20px;}
+  .step-pill{
+    font-size:.78rem;font-weight:700;font-family:'Baloo 2';
+    padding:6px 12px;border-radius:999px;
+    background:var(--cream-slice);color:var(--crust-light);
+    border:2px solid var(--line);
+    display:flex;align-items:center;gap:6px;
+  }
+  .step-pill.active{background:var(--pink);color:#fff;border-color:var(--pink-deep);}
+  .step-pill.complete{background:var(--green);color:#fff;border-color:var(--green-deep);}
+
+  /* ---------- panel ---------- */
+  .panel{
+    background:var(--cream-slice);
+    border:2px solid var(--line);
+    border-radius:14px;
+    padding:20px;
+  }
+  .panel h3{margin:0 0 10px;font-size:1.05rem;}
+  .prompt{font-size:1rem;margin-bottom:14px;}
+
+  .bar-block{margin-bottom:14px;}
+  .bar-caption{font-size:.85rem;color:var(--crust-light);margin-bottom:6px;font-weight:700;}
+  .bar-wrap{position:relative;}
+  .bar{
+    display:flex;
+    border:3px solid var(--crust);
+    border-radius:10px;
+    overflow:hidden;
+    height:48px;
+  }
+  .slice{
+    flex:1;
+    background:var(--cream-slice);
+    border-right:2px dashed rgba(91,58,41,.25);
+    transition:background .25s ease;
+  }
+  .slice:last-child{border-right:none;}
+  .slice.filled.custard{background:var(--custard);}
+  .slice.filled.strawberry{background:var(--pink);}
+  .rolling-pin-overlay{
+    position:absolute;top:0;left:-60px;height:100%;width:60px;
+    font-size:2rem;display:flex;align-items:center;justify-content:center;
+    pointer-events:none;
+  }
+  .rolling-pin-overlay.roll{animation:rollAcross .8s ease forwards;}
+  @keyframes rollAcross{
+    from{left:-60px;}
+    to{left:100%;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .rolling-pin-overlay.roll{animation:none;}
+    .frac-card.shake{animation:none;}
+  }
+
+  .input-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0;}
+  .input-row label{font-weight:700;font-size:.95rem;}
+  input[type=number]{
+    width:74px;
+    font-family:'Baloo 2';font-size:1.1rem;font-weight:700;
+    text-align:center;
+    padding:8px 6px;
+    border:2px solid var(--crust);
+    border-radius:10px;
+    background:#fff;
+  }
+  input[type=number]:focus, .btn:focus-visible, .frac-card.clickable:focus-visible{
+    outline:3px solid var(--pink-deep);outline-offset:2px;
+  }
+  .frac-input{display:flex;flex-direction:column;align-items:center;gap:4px;}
+  .over-slash{font-size:1.4rem;font-weight:800;color:var(--crust-light);}
+
+  /* ---------- stacked fractions everywhere ---------- */
+  .sfrac{
+    display:inline-flex;flex-direction:column;align-items:center;
+    vertical-align:middle;line-height:1.15;
+    font-family:'Baloo 2';font-weight:700;
+    margin:0 3px;
+  }
+  .sfrac .sfrac-n{padding:0 3px 2px;border-bottom:2.5px solid currentColor;}
+  .sfrac .sfrac-d{padding:2px 3px 0;}
+  .story .sfrac{color:var(--pink-deep);}
+  .bar-caption .sfrac{font-size:.95rem;}
+  .prompt .sfrac, .input-row .sfrac{font-size:1.05rem;color:var(--crust);}
+
+  .frac-io{
+    display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
+    background:#fff;border:3px solid var(--crust);border-radius:14px;
+    padding:6px 8px;vertical-align:middle;
+  }
+  .frac-io .io-num{
+    border-bottom:3px solid var(--crust);width:100%;
+    display:flex;justify-content:center;padding-bottom:5px;margin-bottom:5px;
+  }
+  .frac-io .io-den{width:100%;display:flex;justify-content:center;}
+  .frac-io input{
+    width:52px;text-align:center;border:none;background:transparent;
+    font-family:'Baloo 2';font-weight:700;font-size:1.15rem;padding:2px;color:var(--crust);
+  }
+  .frac-io input:focus{outline:2px solid var(--pink-deep);border-radius:6px;}
+  .frac-io .io-static{font-family:'Baloo 2';font-weight:700;font-size:1.15rem;color:var(--crust-light);padding:2px 6px;}
+
+  /* ---------- scale-both-parts visual (Step 2) ---------- */
+  .scale-visual{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;margin:14px 0;}
+  .scale-frac{
+    display:inline-flex;flex-direction:column;align-items:center;
+    background:#fff;border:3px solid var(--crust);border-radius:14px;
+    padding:8px 14px;
+  }
+  .scale-line{
+    display:flex;align-items:center;gap:8px;
+    font-family:'Baloo 2';font-weight:700;font-size:1.15rem;
+    width:100%;justify-content:center;
+  }
+  .scale-line.top{border-bottom:3px solid var(--crust);padding-bottom:8px;margin-bottom:8px;}
+  .scale-op{color:var(--crust-light);font-size:1rem;}
+  .scale-frac input{
+    width:52px;text-align:center;
+    border:2px solid var(--crust);border-radius:8px;padding:5px 4px;
+    font-family:'Baloo 2';font-weight:700;font-size:1.05rem;color:var(--crust);
+  }
+  .scale-frac input:focus{outline:2px solid var(--pink-deep);outline-offset:1px;}
+  .scale-mirror{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:52px;padding:5px 8px;
+    border:2px dashed var(--crust-light);border-radius:8px;
+    color:var(--crust-light);font-weight:700;
+  }
+  .scale-mirror.filled{color:var(--crust);border-style:solid;border-color:var(--custard-deep);background:var(--cream-slice);}
+  .sfrac-n.resolved{color:var(--green-deep);}
+
+  .feedback{
+    margin-top:12px;font-size:.95rem;font-weight:700;
+    display:flex;align-items:center;gap:8px;
+    min-height:24px;
+  }
+  .feedback.good{color:var(--green-deep);}
+  .feedback.bad{color:var(--red);}
+  .hint-box{
+    margin-top:10px;background:#fff;border:2px dashed var(--custard-deep);
+    border-radius:10px;padding:10px 14px;font-size:.9rem;color:var(--crust-light);
+  }
+
+  .final-card{text-align:center;}
+  .final-score{
+    font-family:'Baloo 2';font-weight:800;font-size:2.2rem;color:var(--pink-deep);
+    margin:10px 0;
+  }
+  .confetti{font-size:1.6rem;letter-spacing:4px;margin:10px 0;}
+
+  footer{text-align:center;color:var(--crust-light);font-size:.8rem;margin-top:20px;}
+  .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="header-left">
+      <svg class="mascot" viewBox="0 0 100 100" aria-hidden="true">
+        <ellipse cx="50" cy="58" rx="34" ry="30" fill="#FFF7EA" stroke="#5B3A29" stroke-width="4"/>
+        <path d="M20 46 Q50 10 80 46" fill="#fff" stroke="#5B3A29" stroke-width="4"/>
+        <rect x="18" y="40" width="64" height="10" rx="5" fill="#E8909E" stroke="#5B3A29" stroke-width="3"/>
+        <circle cx="38" cy="58" r="4" fill="#5B3A29"/>
+        <circle cx="62" cy="58" r="4" fill="#5B3A29"/>
+        <path d="M38 70 Q50 78 62 70" fill="none" stroke="#5B3A29" stroke-width="3.5" stroke-linecap="round"/>
+        <circle cx="30" cy="66" r="5" fill="#F5B8C1" opacity=".8"/>
+        <circle cx="70" cy="66" r="5" fill="#F5B8C1" opacity=".8"/>
+      </svg>
+      <div class="header-title">
+        <span class="display">Baker Mochi's Fraction Bakery</span>
+        <span class="sub">Story sums: adding &amp; subtracting unlike fractions</span>
+      </div>
+    </div>
+    <div class="progress-dots" id="progressDots" aria-label="Progress through 10 recipes"></div>
+  </div>
+
+  <div id="app"></div>
+
+  <footer>Made for P4 Fraction Story Sums &middot; Baker Mochi's Bakery</footer>
+</div>
+
+<script>
+/* ---------------- data ---------------- */
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); return b===0?a:gcd(b,a%b); }
+function lcm(a,b){ return (a*b)/gcd(a,b); }
+
+// Stacked fraction (numerator over a line over denominator), for use anywhere
+// inline in text — sentences, captions, prompts, feedback messages.
+function frac(num, den){
+  return `<span class="sfrac"><span class="sfrac-n">${num}</span><span class="sfrac-d">${den}</span></span>`;
+}
+function fracB(num, den){
+  return `<b>${frac(num, den)}</b>`;
+}
+
+const PROBLEM_SETS = {
+  A: [
+    { title:"Muffins & Scones", icon:"🌾", unitA:"bag of flour for muffins", unitB:"bag of flour for scones",
+      story:`Baker Mochi used ${fracB(1,4)} of a bag of flour for banana muffins, then ${fracB(1,8)} of a bag for blueberry scones. How much flour did Mochi use altogether?`,
+      num1:1, den1:4, op:"+", num2:1, den2:8 },
+    { title:"Cookie Tray", icon:"🍪", unitA:"tray left this morning", unitB:"tray sold",
+      story:`Mochi had ${fracB(5,6)} of a tray of cookies left after breakfast. She sold ${fracB(1,3)} of the tray to a customer. How much of the tray is left now?`,
+      num1:5, den1:6, op:"-", num2:1, den2:3 },
+    { title:"Cake Batter", icon:"🥛", unitA:"jug poured first", unitB:"jug poured after",
+      story:`For cake batter, Mochi poured ${fracB(1,3)} jug of milk, then added another ${fracB(1,9)} jug of milk. How much milk did she use in total?`,
+      num1:1, den1:3, op:"+", num2:1, den2:9 },
+    { title:"Blueberry Cheesecake", icon:"🍰", unitA:"cheesecake left in fridge", unitB:"cheesecake served",
+      story:`Mochi had ${fracB(7,10)} of a cheesecake left in the fridge. She served ${fracB(1,5)} of the whole cheesecake to a guest. How much cheesecake is left?`,
+      num1:7, den1:10, op:"-", num2:1, den2:5 },
+    { title:"Caramel Sauce", icon:"🍬", unitA:"bag of sugar", unitB:"bag used for caramel",
+      story:`Mochi had ${fracB(5,8)} of a bag of sugar. She used ${fracB(1,4)} of the bag to make caramel sauce. How much sugar is left?`,
+      num1:5, den1:8, op:"-", num2:1, den2:4 },
+    { title:"Cookie Dough", icon:"🍫", unitA:"cup of chocolate chips", unitB:"cup of raisins",
+      story:`Mochi stirred ${fracB(1,6)} cup of chocolate chips and ${fracB(1,12)} cup of raisins into the cookie dough. How much mix-ins did she add in total?`,
+      num1:1, den1:6, op:"+", num2:1, den2:12 },
+    { title:"Birthday Cake", icon:"🎂", unitA:"cake with icing", unitB:"cake with sprinkles",
+      story:`Mochi frosted ${fracB(3,4)} of a cake with vanilla icing, then added sprinkles to another ${fracB(1,8)} of the cake. How much of the cake is now decorated?`,
+      num1:3, den1:4, op:"+", num2:1, den2:8 },
+    { title:"Macaron Box", icon:"🧁", unitA:"box full of macarons", unitB:"box packed for order",
+      story:`A box was ${fracB(7,9)} full of macarons. Mochi packed ${fracB(1,3)} of the box for a customer's order. How much of the box is left?`,
+      num1:7, den1:9, op:"-", num2:1, den2:3 },
+    { title:"Morning Flour", icon:"🌾", unitA:"bag full this morning", unitB:"bag used by afternoon",
+      story:`Mochi's flour bag was ${fracB(9,10)} full this morning. By afternoon, she had used ${fracB(3,5)} of the bag. How much flour remains?`,
+      num1:9, den1:10, op:"-", num2:3, den2:5 },
+    { title:"Whipped Cream", icon:"🍦", unitA:"jug poured first", unitB:"jug poured after",
+      story:`Mochi poured ${fracB(1,2)} jug of cream into a bowl, then added another ${fracB(3,10)} jug. How much cream is in the bowl now?`,
+      num1:1, den1:2, op:"+", num2:3, den2:10 },
+  ],
+  B: [
+    { title:"Pretzel Dough", icon:"🥨", unitA:"bag kneaded first", unitB:"bag mixed in after",
+      story:`Mochi kneaded ${fracB(1,3)} of a bag of pretzel dough, then mixed in another ${fracB(1,6)} of a bag. How much dough did she use in total?`,
+      num1:1, den1:3, op:"+", num2:1, den2:6 },
+    { title:"Apple Pie", icon:"🥧", unitA:"pie left", unitB:"pie sold",
+      story:`Mochi had ${fracB(7,8)} of an apple pie left. A customer bought a slice equal to ${fracB(1,4)} of the whole pie. How much pie is left?`,
+      num1:7, den1:8, op:"-", num2:1, den2:4 },
+    { title:"Lemonade Jugs", icon:"🍋", unitA:"jug poured first", unitB:"jug poured after",
+      story:`Mochi poured ${fracB(1,4)} jug of lemonade, then added ${fracB(3,12)} jug more. How much lemonade did she pour in total?`,
+      num1:1, den1:4, op:"+", num2:3, den2:12 },
+    { title:"Waffle Batter", icon:"🧇", unitA:"bowl of batter", unitB:"bowl used for morning batch",
+      story:`Mochi mixed ${fracB(5,6)} of a bowl of waffle batter. She used ${fracB(1,2)} of the bowl for the morning batch. How much batter is left?`,
+      num1:5, den1:6, op:"-", num2:1, den2:2 },
+    { title:"Jam Jar", icon:"🍓", unitA:"jar full", unitB:"jar used for tarts",
+      story:`A jam jar was ${fracB(9,12)} full. Mochi used ${fracB(1,3)} of the jar for tarts. How much jam is left?`,
+      num1:9, den1:12, op:"-", num2:1, den2:3 },
+    { title:"Donut Glaze", icon:"🍩", unitA:"cup drizzled first", unitB:"cup drizzled after",
+      story:`Mochi drizzled ${fracB(1,2)} cup of glaze over the donuts, then ${fracB(1,8)} cup more. How much glaze did she use in total?`,
+      num1:1, den1:2, op:"+", num2:1, den2:8 },
+    { title:"Bread Dough Rising", icon:"🍞", unitA:"bowl before rising", unitB:"bowl gained while rising",
+      story:`Bread dough filled ${fracB(5,9)} of the bowl. After rising, it grew by another ${fracB(1,3)} of the bowl's size. How full is the bowl now?`,
+      num1:5, den1:9, op:"+", num2:1, den2:3 },
+    { title:"Croissant Tray", icon:"🥐", unitA:"tray full", unitB:"tray sold",
+      story:`A tray was ${fracB(11,12)} full of croissants. Mochi sold ${fracB(1,6)} of the tray. How much of the tray is left?`,
+      num1:11, den1:12, op:"-", num2:1, den2:6 },
+    { title:"Icing Bag", icon:"🎂", unitA:"bag left", unitB:"bag used on a cake",
+      story:`Mochi had ${fracB(4,5)} of an icing bag left. She used ${fracB(3,10)} of the bag decorating a cake. How much icing is left?`,
+      num1:4, den1:5, op:"-", num2:3, den2:10 },
+    { title:"Hot Cocoa", icon:"☕", unitA:"mug poured first", unitB:"mug topped up after",
+      story:`Mochi poured ${fracB(2,3)} of a mug of cocoa, then topped it up with ${fracB(1,6)} mug more of milk. How full is the mug now?`,
+      num1:2, den1:3, op:"+", num2:1, den2:6 },
+  ],
+  C: [
+    { title:"Fruit Tart Filling", icon:"🍰", unitA:"cup spread first", unitB:"cup added after",
+      story:`Mochi spread ${fracB(1,2)} cup of custard into the tart shells, then added ${fracB(1,10)} cup more. How much filling did she use in total?`,
+      num1:1, den1:2, op:"+", num2:1, den2:10 },
+    { title:"Baguette", icon:"🥖", unitA:"baguette left", unitB:"baguette used for sandwiches",
+      story:`Mochi had ${fracB(3,4)} of a baguette left. She used ${fracB(1,8)} of the baguette for sandwiches. How much baguette is left?`,
+      num1:3, den1:4, op:"-", num2:1, den2:8 },
+    { title:"Sprinkle Jar", icon:"🧁", unitA:"jar of rainbow sprinkles", unitB:"jar of chocolate sprinkles",
+      story:`Mochi added ${fracB(1,6)} jar of rainbow sprinkles, then ${fracB(1,2)} jar of chocolate sprinkles. How much sprinkles did she use in total?`,
+      num1:1, den1:6, op:"+", num2:1, den2:2 },
+    { title:"Milk Carton", icon:"🥛", unitA:"carton full", unitB:"carton used for pancakes",
+      story:`A milk carton was ${fracB(9,10)} full. Mochi used ${fracB(2,5)} of the carton to make pancakes. How much milk is left?`,
+      num1:9, den1:10, op:"-", num2:2, den2:5 },
+    { title:"Muffin Tray", icon:"🧁", unitA:"tray full", unitB:"tray packed for delivery",
+      story:`A muffin tray was ${fracB(7,9)} full. Mochi packed ${fracB(2,3)} of the tray for a delivery. How much is left in the tray?`,
+      num1:7, den1:9, op:"-", num2:2, den2:3 },
+    { title:"Cinnamon Mix", icon:"🍂", unitA:"cup mixed first", unitB:"cup mixed after",
+      story:`Mochi mixed ${fracB(3,8)} cup of cinnamon sugar, then ${fracB(1,4)} cup more. How much mix did she make in total?`,
+      num1:3, den1:8, op:"+", num2:1, den2:4 },
+    { title:"Butter Block", icon:"🧈", unitA:"block used for pastry", unitB:"block used for cookies",
+      story:`Mochi used ${fracB(1,4)} of a block of butter for pastry, then ${fracB(1,12)} of a block for cookies. How much butter did she use in total?`,
+      num1:1, den1:4, op:"+", num2:1, den2:12 },
+    { title:"Meringue Bowl", icon:"🍮", unitA:"bowl full", unitB:"bowl piped onto a pie",
+      story:`A bowl was ${fracB(5,6)} full of meringue. Mochi piped out ${fracB(1,12)} of the bowl onto a pie. How much meringue is left in the bowl?`,
+      num1:5, den1:6, op:"-", num2:1, den2:12 },
+    { title:"Brownie Batter", icon:"🍫", unitA:"tray full", unitB:"tray poured into cups",
+      story:`A tray was ${fracB(7,8)} full of brownie batter. Mochi poured out ${fracB(1,2)} of the tray into cups. How much batter is left in the tray?`,
+      num1:7, den1:8, op:"-", num2:1, den2:2 },
+    { title:"Sugar Dusting", icon:"🍥", unitA:"cup dusted first", unitB:"cup dusted after",
+      story:`Mochi dusted ${fracB(5,12)} cup of powdered sugar over the cake, then ${fracB(1,4)} cup more. How much sugar did she dust in total?`,
+      num1:5, den1:12, op:"+", num2:1, den2:4 },
+  ],
+};
+const SET_ORDER = ['A','B','C'];
+const SET_LABELS = { A:'Recipe Book A', B:'Recipe Book B', C:'Recipe Book C' };
+function nextSetKey(key){
+  const i = SET_ORDER.indexOf(key);
+  return SET_ORDER[(i+1) % SET_ORDER.length];
+}
+function curSet(){ return PROBLEM_SETS[currentSetKey]; }
+
+/* ---------------- state ---------------- */
+let currentSetKey = 'A';
+let idx = 0;
+let step = 1; // 1 spot, 2 roll out, 3 combine, 4 simplify
+let firstTryClean = true;
+let results = new Array(curSet().length).fill(null);
+let started = false;
+
+let chosen = null;       // 1 or 2 : which fraction needs converting
+let fixedIdx = null;     // the other one (already at target denom)
+let targetDen = null;
+let convertedNum = null; // numerator after conversion
+let combinedNum = null;  // numerator after combining (over targetDen)
+
+const app = document.getElementById('app');
+const dotsWrap = document.getElementById('progressDots');
+
+function buildDots(){
+  dotsWrap.innerHTML = '';
+  curSet().forEach((_,i)=>{
+    const d = document.createElement('div');
+    d.className = 'dot' + (i===idx && started ? ' current' : '') + (results[i] ? ' done' : '');
+    d.textContent = results[i] ? '✓' : '';
+    dotsWrap.appendChild(d);
+  });
+}
+buildDots();
+
+function renderIntro(){
+  app.innerHTML = `
+    <div class="card center">
+      <svg class="intro-mascot" viewBox="0 0 100 100" aria-hidden="true">
+        <ellipse cx="50" cy="58" rx="34" ry="30" fill="#FFF7EA" stroke="#5B3A29" stroke-width="4"/>
+        <path d="M20 46 Q50 10 80 46" fill="#fff" stroke="#5B3A29" stroke-width="4"/>
+        <rect x="18" y="40" width="64" height="10" rx="5" fill="#E8909E" stroke="#5B3A29" stroke-width="3"/>
+        <circle cx="38" cy="58" r="4" fill="#5B3A29"/>
+        <circle cx="62" cy="58" r="4" fill="#5B3A29"/>
+        <path d="M38 70 Q50 78 62 70" fill="none" stroke="#5B3A29" stroke-width="3.5" stroke-linecap="round"/>
+        <circle cx="30" cy="66" r="5" fill="#F5B8C1" opacity=".8"/>
+        <circle cx="70" cy="66" r="5" fill="#F5B8C1" opacity=".8"/>
+      </svg>
+      <h2 class="display">Welcome to my bakery!</h2>
+      <div class="speech">
+        Every recipe here needs two ingredient amounts combined — but first, both trays need to be
+        cut into the <b>same size slices</b> before I can add or take away! We'll spot which tray
+        needs re-cutting, roll it out into more equal slices, then combine. 10 recipes per book!
+      </div>
+      <p class="prompt" style="margin-bottom:8px;">Choose a recipe book:</p>
+      <div class="btn-row">
+        ${SET_ORDER.map(k=>`<button class="btn set-pick-btn" data-set="${k}">${SET_LABELS[k]}</button>`).join('')}
+      </div>
+    </div>`;
+  app.querySelectorAll('.set-pick-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      currentSetKey = btn.getAttribute('data-set');
+      results = new Array(curSet().length).fill(null);
+      started = true;
+      idx = 0; step = 1;
+      beginProblem();
+    });
+  });
+}
+
+function beginProblem(){
+  const p = curSet()[idx];
+  step = 1;
+  firstTryClean = true;
+  chosen = null; fixedIdx = null; targetDen = null; convertedNum = null; combinedNum = null;
+  buildDots();
+  renderProblem();
+}
+
+function stepPillsHtml(){
+  const labels = ['Spot it','Roll it out','Combine','Simplest form'];
+  return `<div class="steps">` + labels.map((l,i)=>{
+    const n = i+1;
+    let cls = 'step-pill';
+    if(n < step) cls += ' complete';
+    else if(n === step) cls += ' active';
+    return `<span class="${cls}">${n<step?'✓':n}. ${l}</span>`;
+  }).join('') + `</div>`;
+}
+
+function fracCardHtml(id, num, den, colorClass, extraClass){
+  return `<div class="frac-card ${extraClass||''}" id="${id}" aria-label="Fraction ${num} over ${den}">
+      <span class="num">${num}</span><span class="den">${den}</span>
+    </div>`;
+}
+
+function barHtml(den, num, colorClass){
+  let slices = '';
+  for(let i=0;i<den;i++){
+    slices += `<div class="slice ${i<num?'filled '+colorClass:''}"></div>`;
+  }
+  return `<div class="bar">${slices}</div>`;
+}
+
+function renderProblem(){
+  const p = curSet()[idx];
+  const opWord = p.op === '+' ? 'add' : 'subtract';
+  const opSym = p.op === '+' ? '+' : '\u2013';
+
+  app.innerHTML = `
+    <div class="card">
+      <span class="recipe-label">${p.icon} ${SET_LABELS[currentSetKey]} — Recipe ${idx+1} of ${curSet().length}: ${p.title}</span>
+      <p class="story">${p.story}</p>
+      ${stepPillsHtml()}
+      <div class="equation" id="equationRow">
+        ${fracCardHtml('fracA', p.num1, p.den1, 'custard')}
+        <span class="op-symbol">${opSym}</span>
+        ${fracCardHtml('fracB', p.num2, p.den2, 'strawberry')}
+        <span class="eq-symbol">=</span>
+        <div class="answer-box" id="answerBox">?</div>
+      </div>
+      <div class="panel" id="stepPanel"></div>
+    </div>`;
+
+  renderStep();
+}
+
+function markFracCards(){
+  const a = document.getElementById('fracA');
+  const b = document.getElementById('fracB');
+  if(!a || !b) return;
+  a.classList.toggle('clickable', step===1);
+  b.classList.toggle('clickable', step===1);
+  if(chosen === 1) a.classList.add('selected');
+  if(chosen === 2) b.classList.add('selected');
+  if(step > 2){
+    if(fixedIdx === 1) a.classList.add('locked');
+    if(fixedIdx === 2) b.classList.add('locked');
+    if(chosen === 1) a.classList.add('locked');
+    if(chosen === 2) b.classList.add('locked');
+  }
+}
+
+function renderStep(){
+  const p = curSet()[idx];
+  const panel = document.getElementById('stepPanel');
+  markFracCards();
+
+  if(step === 1){
+    panel.innerHTML = `
+      <h3>Step 1 &middot; Spot it</h3>
+      <p class="prompt">Both amounts are cut into different-sized slices. Click the fraction whose
+      tray needs to be <b>re-cut into more equal slices</b> before we can ${p.op==='+'?'add':'subtract'}.</p>
+      <div class="bar-block">
+        <div class="bar-caption">${frac(p.num1,p.den1)} — ${p.unitA}</div>
+        ${barHtml(p.den1, p.num1, 'custard')}
+      </div>
+      <div class="bar-block">
+        <div class="bar-caption">${frac(p.num2,p.den2)} — ${p.unitB}</div>
+        ${barHtml(p.den2, p.num2, 'strawberry')}
+      </div>
+      <div class="btn-row">
+        <button class="btn secondary" id="pickA">Pick ${frac(p.num1,p.den1)}</button>
+        <button class="btn secondary" id="pickB">Pick ${frac(p.num2,p.den2)}</button>
+      </div>
+      <div class="feedback" id="fb" aria-live="polite"></div>
+    `;
+    document.getElementById('pickA').addEventListener('click', ()=>trySpot(1));
+    document.getElementById('pickB').addEventListener('click', ()=>trySpot(2));
+    document.getElementById('fracA').addEventListener('click', ()=>trySpot(1));
+    document.getElementById('fracB').addEventListener('click', ()=>trySpot(2));
+    return;
+  }
+
+  if(step === 2){
+    const chosenNum = chosen===1?p.num1:p.num2;
+    const chosenDen = chosen===1?p.den1:p.den2;
+    targetDen = chosen===1?p.den2:p.den1;
+    panel.innerHTML = `
+      <h3>Step 2 &middot; Roll it out</h3>
+      <p class="prompt">We need ${frac(chosenNum,chosenDen)} to be cut into <b>${targetDen}</b>ths, like the other tray.
+      By what number should Mochi multiply the top <em>and</em> bottom, so the amount stays exactly the same?</p>
+      <div class="bar-block">
+        <div class="bar-caption" id="rollCaption">${frac(chosenNum,chosenDen)}</div>
+        <div class="bar-wrap" id="barWrap">${barHtml(chosenDen, chosenNum, chosen===1?'custard':'strawberry')}
+          <div class="rolling-pin-overlay" id="pin">🥖</div>
+        </div>
+      </div>
+      <div class="scale-visual">
+        <div class="scale-frac">
+          <div class="scale-line top">
+            <span>${chosenNum}</span><span class="scale-op">&times;</span>
+            <input type="number" id="scaleInput" min="1" max="20" inputmode="numeric" aria-label="Multiply numerator by">
+          </div>
+          <div class="scale-line">
+            <span>${chosenDen}</span><span class="scale-op">&times;</span>
+            <span class="scale-mirror" id="scaleMirror">?</span>
+          </div>
+        </div>
+        <span class="eq-symbol">=</span>
+        <span class="sfrac"><span class="sfrac-n" id="targetNum">?</span><span class="sfrac-d">${targetDen}</span></span>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="rollBtn">Roll it out! 🥖</button>
+      </div>
+      <div class="feedback" id="fb" aria-live="polite"></div>
+    `;
+    document.getElementById('rollBtn').addEventListener('click', tryRoll);
+    const scaleInputEl = document.getElementById('scaleInput');
+    const scaleMirrorEl = document.getElementById('scaleMirror');
+    const targetNumEl = document.getElementById('targetNum');
+    scaleInputEl.addEventListener('input', ()=>{
+      const raw = scaleInputEl.value;
+      const v = raw === '' ? null : parseInt(raw, 10);
+      scaleMirrorEl.textContent = (v===null || isNaN(v)) ? '?' : v;
+      scaleMirrorEl.classList.toggle('filled', v!==null && !isNaN(v));
+      targetNumEl.textContent = (v===null || isNaN(v)) ? '?' : (chosenNum * v);
+      targetNumEl.classList.toggle('resolved', v!==null && !isNaN(v));
+    });
+    scaleInputEl.addEventListener('keydown', e=>{ if(e.key==='Enter') tryRoll(); });
+    return;
+  }
+
+  if(step === 3){
+    const otherNum = fixedIdx===1?p.num1:p.num2;
+    const n1 = chosen===1?convertedNum:p.num1;
+    const n2 = chosen===2?convertedNum:p.num2;
+    panel.innerHTML = `
+      <h3>Step 3 &middot; Combine</h3>
+      <p class="prompt">Both trays are now cut into <b>${targetDen}</b>ths! ${p.op==='+'?'Add':'Subtract'} the shaded slices.</p>
+      <div class="bar-block">
+        <div class="bar-caption">${frac(otherNum,targetDen)} (unchanged)</div>
+        ${barHtml(targetDen, otherNum, fixedIdx===1?'custard':'strawberry')}
+      </div>
+      <div class="bar-block">
+        <div class="bar-caption">${frac(convertedNum,targetDen)} (rolled out)</div>
+        ${barHtml(targetDen, convertedNum, chosen===1?'custard':'strawberry')}
+      </div>
+      <div class="input-row">
+        ${frac(n1,targetDen)} <span class="over-slash" style="font-size:1.4rem;">${p.op==='+'?'+':'\u2013'}</span> ${frac(n2,targetDen)} <span class="over-slash" style="font-size:1.4rem;">=</span>
+        <div class="frac-io">
+          <div class="io-num"><input type="number" id="combineInput" min="0" max="40" inputmode="numeric" aria-label="Combined numerator"></div>
+          <div class="io-den"><span class="io-static">${targetDen}</span></div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="combineBtn">Check</button>
+      </div>
+      <div class="feedback" id="fb" aria-live="polite"></div>
+    `;
+    document.getElementById('combineBtn').addEventListener('click', tryCombine);
+    document.getElementById('combineInput').addEventListener('keydown', e=>{ if(e.key==='Enter') tryCombine(); });
+    return;
+  }
+
+  if(step === 4){
+    panel.innerHTML = `
+      <h3>Step 4 &middot; Simplest form</h3>
+      <p class="prompt">We have ${frac(combinedNum,targetDen)}. Can this be cut down into fewer, bigger slices
+      (simplified)? Write the answer in its simplest form.</p>
+      <div class="bar-block">
+        <div class="bar-caption">${frac(combinedNum,targetDen)}</div>
+        ${barHtml(targetDen, combinedNum, 'custard')}
+      </div>
+      <div class="input-row">
+        <div class="frac-io">
+          <div class="io-num"><input type="number" id="simpNum" min="0" max="40" inputmode="numeric" aria-label="Simplest numerator"></div>
+          <div class="io-den"><input type="number" id="simpDen" min="1" max="40" inputmode="numeric" aria-label="Simplest denominator"></div>
+        </div>
+        <button class="btn" id="simpBtn">Check</button>
+      </div>
+      <div class="feedback" id="fb" aria-live="polite"></div>
+    `;
+    document.getElementById('simpBtn').addEventListener('click', trySimplify);
+    document.getElementById('simpDen').addEventListener('keydown', e=>{ if(e.key==='Enter') trySimplify(); });
+    return;
+  }
+}
+
+function showFeedback(msg, good){
+  const fb = document.getElementById('fb');
+  fb.className = 'feedback ' + (good?'good':'bad');
+  fb.innerHTML = (good?'✅ ':'✋ ') + msg;
+}
+
+function trySpot(pick){
+  if(step !== 1) return;
+  const p = curSet()[idx];
+  const correctPick = p.den1 < p.den2 ? 1 : 2; // smaller denom needs converting (one divides the other)
+  if(pick === correctPick){
+    chosen = pick;
+    fixedIdx = pick===1?2:1;
+    showFeedback(`Yes! ${pick===1?frac(p.num1,p.den1):frac(p.num2,p.den2)} has fewer, bigger slices — it needs re-cutting to match.`, true);
+    setTimeout(()=>{ step = 2; renderStep(); }, 700);
+  } else {
+    firstTryClean = false;
+    const card = document.getElementById(pick===1?'fracA':'fracB');
+    card.classList.add('shake');
+    setTimeout(()=>card.classList.remove('shake'), 400);
+    showFeedback(`Check the denominators — does ${p.den1} divide evenly into ${p.den2}, or the other way round? Pick the one that needs to change.`, false);
+  }
+}
+
+function tryRoll(){
+  const p = curSet()[idx];
+  const chosenDen = chosen===1?p.den1:p.den2;
+  const chosenNum = chosen===1?p.num1:p.num2;
+  const val = parseInt(document.getElementById('scaleInput').value, 10);
+  if(!val){
+    showFeedback('Type a number first!', false);
+    return;
+  }
+  if(chosenDen * val === targetDen){
+    convertedNum = chosenNum * val;
+    const pin = document.getElementById('pin');
+    pin.classList.add('roll');
+    showFeedback(`Rolled out! ${frac(chosenNum,chosenDen)} is the same amount as ${frac(convertedNum,targetDen)}.`, true);
+    setTimeout(()=>{
+      document.getElementById('barWrap').innerHTML =
+        barHtml(targetDen, convertedNum, chosen===1?'custard':'strawberry') +
+        `<div class="rolling-pin-overlay" id="pin">🥖</div>`;
+      document.getElementById('rollCaption').innerHTML = frac(convertedNum,targetDen);
+    }, 650);
+    setTimeout(()=>{ step = 3; renderStep(); }, 1500);
+  } else {
+    firstTryClean = false;
+    showFeedback(`Not quite — ${chosenDen} \u00d7 ${val} = ${chosenDen*val}, but we need ${targetDen}. Try again.`, false);
+  }
+}
+
+function tryCombine(){
+  const p = curSet()[idx];
+  const n1 = chosen===1?convertedNum:p.num1;
+  const n2 = chosen===2?convertedNum:p.num2;
+  const trueCorrect = p.op==='+' ? n1+n2 : n1-n2;
+  const val = parseInt(document.getElementById('combineInput').value, 10);
+  if(isNaN(val)){
+    showFeedback('Type a number first!', false);
+    return;
+  }
+  if(val === trueCorrect){
+    combinedNum = trueCorrect;
+    showFeedback(`${frac(n1,targetDen)} ${p.op} ${frac(n2,targetDen)} = ${frac(trueCorrect,targetDen)}.`, true);
+    setTimeout(()=>{ step = 4; renderStep(); }, 900);
+  } else {
+    firstTryClean = false;
+    showFeedback(`Not quite — remember, the denominator stays the same. Just ${p.op==='+'?'add':'subtract'} the top numbers.`, false);
+  }
+}
+
+function trySimplify(){
+  const num = parseInt(document.getElementById('simpNum').value, 10);
+  const den = parseInt(document.getElementById('simpDen').value, 10);
+  if(isNaN(num) || isNaN(den) || den===0){
+    showFeedback('Fill in both boxes first!', false);
+    return;
+  }
+  const g = gcd(combinedNum, targetDen);
+  const simplestNum = combinedNum / g;
+  const simplestDen = targetDen / g;
+  const sameValue = Math.abs(num/den - combinedNum/targetDen) < 1e-9;
+  const inLowestTerms = gcd(num, den) === 1;
+
+  if(num === simplestNum && den === simplestDen){
+    finishProblem();
+  } else if(sameValue && !inLowestTerms){
+    firstTryClean = false;
+    showFeedback(`${frac(num,den)} is the right amount, but it can still be simplified further. Keep dividing top and bottom!`, false);
+  } else {
+    firstTryClean = false;
+    showFeedback(`Not quite the same amount as ${frac(combinedNum,targetDen)}. Check your division.`, false);
+  }
+}
+
+function finishProblem(){
+  const panel = document.getElementById('stepPanel');
+  results[idx] = firstTryClean ? 'clean' : 'retry';
+  buildDots();
+  const g = gcd(combinedNum, targetDen);
+  panel.innerHTML += `
+    <div class="hint-box" style="border-color:var(--green-deep);background:#F3FAEF;">
+      🎉 Recipe complete! ${frac(combinedNum,targetDen)} in simplest form is ${frac(combinedNum/g, targetDen/g)}.
+    </div>
+    <div class="btn-row">
+      <button class="btn green" id="nextBtn">${idx < curSet().length-1 ? 'Next Recipe →' : 'See my results →'}</button>
+    </div>`;
+  document.getElementById('nextBtn').addEventListener('click', ()=>{
+    if(idx < curSet().length-1){
+      idx++;
+      beginProblem();
+    } else {
+      renderFinal();
+    }
+  });
+}
+
+function renderFinal(){
+  const clean = results.filter(r=>r==='clean').length;
+  const retried = results.filter(r=>r==='retry').length;
+  const subMsg = retried > 0
+    ? `solved correctly on the first try, and ${retried} more after a helpful retry.`
+    : `solved correctly on the very first try. Amazing baking!`;
+  const upcoming = nextSetKey(currentSetKey);
+  app.innerHTML = `
+    <div class="card final-card">
+      <div class="confetti">🎂 🍪 🧁 🍰 🥐</div>
+      <h2 class="display">${SET_LABELS[currentSetKey]} complete!</h2>
+      <div class="final-score">${clean} / ${curSet().length}</div>
+      <p>${subMsg}</p>
+      <div class="speech">Great baking today! Remember: before you can add or subtract fractions, check
+      the denominators — roll the smaller one out until both trays match, <em>then</em> combine the slices.</div>
+      <div class="btn-row">
+        <button class="btn green" id="nextSetBtn">Bake ${SET_LABELS[upcoming]} →</button>
+        <button class="btn secondary" id="redoSetBtn">Redo ${SET_LABELS[currentSetKey]} 🔁</button>
+      </div>
+      <p style="margin-top:14px;"><button class="btn secondary" id="chooseSetBtn">Choose a different book</button></p>
+    </div>`;
+  document.getElementById('nextSetBtn').addEventListener('click', ()=>{
+    currentSetKey = upcoming;
+    results = new Array(curSet().length).fill(null);
+    idx = 0; started = true;
+    beginProblem();
+  });
+  document.getElementById('redoSetBtn').addEventListener('click', ()=>{
+    results = new Array(curSet().length).fill(null);
+    idx = 0; started = true;
+    beginProblem();
+  });
+  document.getElementById('chooseSetBtn').addEventListener('click', renderIntro);
+}
+
+renderIntro();
+</script>
+</body>
+</html>
