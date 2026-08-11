@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>P3 Maths Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FBF1DE;
+  --ink: #3B2A20;
+  --ink-soft: #6B584A;
+  --card: #FFFFFF;
+  --plum: #7B3F61;
+  --plum-dark: #5E2F4B;
+  --ring: #E8A63B;
+  --mint: #7FBE9E;
+  --coral: #F0876A;
+  --sky: #6FB6D9;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  font-family: 'Nunito', sans-serif;
+  color: var(--ink);
+  display: flex;
+  justify-content: center;
+  padding: 40px 16px 60px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* floating background decorations */
+.deco {
+  position: fixed;
+  pointer-events: none;
+  opacity: 0.5;
+  animation: drift 9s ease-in-out infinite;
+  z-index: 0;
+  font-size: 30px;
+}
+.deco.d1 { top: 8%;  left: 6%;  animation-duration: 8s; }
+.deco.d2 { top: 18%; right: 8%; animation-duration: 10s; animation-delay: 1s; font-size: 24px; }
+.deco.d3 { top: 55%; left: 4%;  animation-duration: 11s; animation-delay: 2s; font-size: 26px; }
+.deco.d4 { top: 70%; right: 6%; animation-duration: 9s;  animation-delay: 0.5s; font-size: 28px; }
+.deco.d5 { top: 38%; left: 88%; animation-duration: 12s; animation-delay: 1.5s; font-size: 22px; }
+@keyframes drift {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-16px) rotate(6deg); }
+}
+
+.wrap { width: 100%; max-width: 760px; position: relative; z-index: 1; }
+
+.mascot-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 4px;
+}
+.mascot {
+  font-size: 52px;
+  display: inline-block;
+  animation: bob 2.4s ease-in-out infinite;
+  transform-origin: bottom center;
+}
+@keyframes bob {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-9px) rotate(3deg); }
+}
+.speech {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 8px 16px;
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--plum-dark);
+  box-shadow: 0 3px 0 #EEDFC4;
+  position: relative;
+}
+.speech::after {
+  content: "";
+  position: absolute;
+  left: -8px; bottom: 12px;
+  border-width: 6px 8px 6px 0;
+  border-style: solid;
+  border-color: transparent var(--card) transparent transparent;
+}
+
+h1 {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 700;
+  font-size: clamp(30px, 6vw, 42px);
+  margin: 14px 0 6px;
+  color: var(--plum-dark);
+  text-align: center;
+}
+.subtitle {
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 40px;
+}
+
+.section-title {
+  font-family: 'Fredoka', sans-serif;
+  font-weight: 600;
+  font-size: 21px;
+  color: var(--plum-dark);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 20px;
+}
+.section-title .icon { font-size: 24px; }
+.section-title .rule {
+  flex: 1;
+  height: 0;
+  border-top: 3px dotted var(--ring);
+  margin-top: 4px;
+}
+.section + .section { margin-top: 46px; }
+
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+@media (max-width: 560px) {
+  .cards { grid-template-columns: 1fr; }
+}
+
+a.card {
+  background: var(--card);
+  border-radius: 22px;
+  padding: 26px 22px;
+  text-decoration: none;
+  color: var(--ink);
+  box-shadow: 0 4px 0 #EEDFC4, 0 4px 14px rgba(59,42,32,0.07);
+  transition: transform 0.18s cubic-bezier(.34,1.56,.64,1), box-shadow 0.18s ease;
+  display: block;
+  position: relative;
+  overflow: hidden;
+}
+a.card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 6px;
+  background: var(--badge, var(--ring));
+  border-radius: 22px 22px 0 0;
+}
+a.card:hover {
+  transform: translateY(-6px) rotate(-1deg);
+  box-shadow: 0 8px 0 #EEDFC4, 0 14px 22px rgba(59,42,32,0.14);
+}
+a.card:hover .emoji { animation: wiggle 0.5s ease-in-out; }
+a.card:focus-visible { outline: 3px solid var(--plum); outline-offset: 3px; }
+@keyframes wiggle {
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-10deg) scale(1.08); }
+  75% { transform: rotate(10deg) scale(1.08); }
+}
+
+.emoji { font-size: 42px; display: block; margin-bottom: 10px; }
+.card h2 {
+  font-family: 'Fredoka', sans-serif;
+  font-size: 21px;
+  margin: 0 0 8px;
+  color: var(--plum-dark);
+}
+.card p {
+  margin: 0;
+  font-size: 14.5px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  min-height: 44px;
+}
+.play {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 16px;
+  font-weight: 800;
+  color: #fff;
+  background: var(--badge, var(--plum));
+  font-size: 13.5px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-family: 'Fredoka', sans-serif;
+}
+.play .arrow { transition: transform 0.18s ease; }
+a.card:hover .play .arrow { transform: translateX(4px); }
+
+footer {
+  text-align: center;
+  margin-top: 50px;
+  font-family: 'Fredoka', sans-serif;
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+.byline {
+  margin-top: 8px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  opacity: 0.75;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deco, .mascot, a.card, .play .arrow { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<span class="deco d1">⭐</span>
+<span class="deco d2">🥧</span>
+<span class="deco d3">✨</span>
+<span class="deco d4">🔢</span>
+<span class="deco d5">🎯</span>
+
+<div class="wrap">
+
+  <div class="mascot-row">
+    <span class="mascot">🦉</span>
+    <span class="speech">Ready to play some maths?</span>
+  </div>
+
+  <h1>P3 Maths Games</h1>
+  <p class="subtitle">Pick a game to practise!</p>
+
+  <div class="section">
+    <div class="section-title">
+      <span class="icon">🥧</span> Fractions <span class="rule"></span>
+    </div>
+    <div class="cards">
+
+      <a class="card" style="--badge:var(--coral)" href="pie-match.html">
+        <span class="emoji">🥧</span>
+        <h2>Fraction Pie Match</h2>
+        <p>Find the 3 pairs of pies that show the same amount, even though they're cut differently.</p>
+        <span class="play">Play <span class="arrow">→</span></span>
+      </a>
+
+      <a class="card" style="--badge:var(--sky)" href="picture-match.html">
+        <span class="emoji">🎯</span>
+        <h2>Fraction to Picture Match</h2>
+        <p>Read a fraction like 3/4, then pick the one picture that shows exactly that much.</p>
+        <span class="play">Play <span class="arrow">→</span></span>
+      </a>
+
+      <a class="card" style="--badge:var(--mint)" href="fraction-concentration.html">
+        <span class="emoji">🫠</span>
+        <h2>Equivalent Fraction Concentration</h2>
+        <p>Squish open two goopy blobs. If the fractions are equivalent, you keep the pair!</p>
+        <span class="play">Play <span class="arrow">→</span></span>
+      </a>
+
+      <a class="card" style="--badge:var(--plum)" href="simplify-fractions.html">
+        <span class="emoji">✂️</span>
+        <h2>Simplifying Fractions</h2>
+        <p>Cut a fraction down to its simplest form, step by step, with visual diagrams to guide you.</p>
+        <span class="play">Play <span class="arrow">→</span></span>
+      </a>
+
+      <a class="card" style="--badge:var(--sky)" href="multiply-equivalent.html">
+        <span class="emoji">✖️</span>
+        <h2>Finding Equivalent Fractions</h2>
+        <p>Multiply the top AND bottom by the same number to make an equivalent fraction.</p>
+        <span class="play">Play <span class="arrow">→</span></span>
+      </a>
+
+      <a class="card" style="--badge:var(--coral)" href="fraction-detective.html">
+        <span class="emoji">🕵️</span>
+        <h2>Fraction Detective Agency</h2>
+        <p>Crack the case! Simplify fractions down to their lowest terms to solve each mystery.</p>
+        <span class="play">Play <span class="arrow">→</span></span>
+      </a>
+
+      <a class="card" style="--badge:var(--ring)" href="baker-mochi-fraction-story-sums.html">
+        <span class="emoji">🥐</span>
+        <h2>Baker Mochi's Fraction Bakery</h2>
+        <p>Solve baking story sums: spot which fraction to rewrite, roll it out, then add or subtract.</p>
+        <span class="play">Play <span class="arrow">→</span></span>
+      </a>
+
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">
+      <span class="icon">🏁</span> Multiplication &amp; Division <span class="rule"></span>
+    </div>
+    <div class="cards">
+
+      <a class="card" style="--badge:var(--ring)" href="times-tables-racer.html">
+        <span class="emoji">🏁</span>
+        <h2>Times Tables Racer</h2>
+        <p>Answer fast, answer right, and race a rival car to the finish line. Pick your tables and question style.</p>
+        <span class="play">Play <span class="arrow">→</span></span>
+      </a>
+
+      <a class="card" style="--badge:var(--coral)" href="division-racer.html">
+        <span class="emoji">🏎️</span>
+        <h2>Division Racer</h2>
+        <p>Split it fast, split it right, and race to the finish line! Division facts within 1–100.</p>
+        <span class="play">Play <span class="arrow">→</span></span>
+      </a>
+
+    </div>
+  </div>
+
+  <footer>
+    🌟 Have fun and good luck! 🌟
+    <div class="byline">Made with ❤️ by Mrs Sim · Dazhong Primary School</div>
+  </footer>
+
+</div>
+</body>
+</html>
