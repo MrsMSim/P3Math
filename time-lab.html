@@ -1,0 +1,762 @@
+<title>24-Hour Time Lab</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap">
+<style>
+/* Layout: one centred column; tab bar switches between four practice stations, each a single question card */
+:root{
+  --bg:#FBF5EA; --surface:#FFFFFF; --ink:#2E1F2B; --muted:#76646F; --line:#E8DCD2;
+  --plum:#6B2D5C; --plum-soft:#F2E4ED; --on-plum:#FFFFFF;
+  --amber:#D98E1F; --amber-soft:#FCEBCF;
+  --good:#23794B; --good-soft:#DDF2E6; --bad:#B83A34; --bad-soft:#F9E1DF;
+  --night:#2B3A67; --day:#F4C04E; --dusk:#E58B4C;
+  --display:"Fredoka","Baloo 2","Trebuchet MS",system-ui,sans-serif;
+  --body:"Nunito","Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1D171E; --surface:#2A2229; --ink:#F4EAF0; --muted:#BBA9B4; --line:#41353F;
+  --plum:#D79BC7; --plum-soft:#3C2939; --on-plum:#1D171E;
+  --amber:#F1B65A; --amber-soft:#43341D;
+  --good:#71CF98; --good-soft:#1E3A2A; --bad:#F2918B; --bad-soft:#4A262A;
+  --night:#5468A8; --day:#E9B748; --dusk:#D9814A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1D171E; --surface:#2A2229; --ink:#F4EAF0; --muted:#BBA9B4; --line:#41353F;
+  --plum:#D79BC7; --plum-soft:#3C2939; --on-plum:#1D171E;
+  --amber:#F1B65A; --amber-soft:#43341D;
+  --good:#71CF98; --good-soft:#1E3A2A; --bad:#F2918B; --bad-soft:#4A262A;
+  --night:#5468A8; --day:#E9B748; --dusk:#D9814A; color-scheme:dark}
+
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+.wrap{max-width:860px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;font-weight:600}
+[hidden]{display:none!important}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+
+header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand svg{width:46px;height:46px;flex:none}
+.brand h1{font-size:1.75rem;color:var(--plum);line-height:1.1}
+.brand p{margin:0;color:var(--muted);font-size:.92rem}
+.level{display:flex;background:var(--surface);border:2px solid var(--line);border-radius:999px;padding:3px}
+.level button{border:0;background:none;color:var(--muted);padding:6px 14px;border-radius:999px;font-weight:800;font-size:.9rem}
+.level button[aria-pressed="true"]{background:var(--plum);color:var(--on-plum)}
+.levelnote{font-size:.85rem;color:var(--muted);text-align:right;width:100%}
+
+.tabs{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.tabs button{border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:14px;padding:10px 8px;
+  font-family:var(--display);font-weight:600;font-size:1rem;display:flex;flex-direction:column;align-items:center;gap:2px}
+.tabs button small{font-family:var(--body);font-weight:700;font-size:.75rem;color:var(--muted)}
+.tabs button[aria-selected="true"]{border-color:var(--plum);background:var(--plum-soft);color:var(--plum)}
+@media (max-width:640px){.tabs{grid-template-columns:repeat(2,1fr)}.tabs button:last-child{grid-column:span 2}}
+
+.panel{background:var(--surface);border:2px solid var(--line);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:16px}
+.phead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:8px}
+.phead h2{font-size:1.4rem}
+.score{font-weight:800;color:var(--amber);font-variant-numeric:tabular-nums;font-size:.95rem}
+
+/* explore */
+.explore{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:22px;align-items:center}
+@media (max-width:640px){.explore{grid-template-columns:1fr;justify-items:center}}
+.clockbox{position:relative;width:100%;max-width:260px}
+.clock{width:100%;height:auto;display:block}
+.sky{position:absolute;top:-4px;right:-4px;width:52px;height:52px;border-radius:50%;background:var(--surface);border:2px solid var(--line);display:grid;place-items:center}
+.sky svg{width:34px;height:34px}
+.readouts{display:flex;flex-direction:column;gap:12px;min-width:0;width:100%}
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ro{border-radius:16px;padding:10px 14px;background:var(--bg);border:2px solid var(--line)}
+.ro span{display:block;font-size:.78rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.ro b{font-family:var(--display);font-size:2rem;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.15}
+.ro.h24{border-color:var(--plum);background:var(--plum-soft)} .ro.h24 b{color:var(--plum)}
+.rule{background:var(--amber-soft);border-radius:14px;padding:10px 14px;font-size:.98rem}
+.daystrip{display:flex;flex-direction:column;gap:4px}
+.daystrip label{font-weight:800;font-size:.85rem;color:var(--muted)}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:30px;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:16px;border-radius:99px;background:linear-gradient(90deg,var(--night) 0%,var(--night) 21%,var(--dusk) 27%,var(--day) 36%,var(--day) 72%,var(--dusk) 79%,var(--night) 86%,var(--night) 100%)}
+input[type=range]::-moz-range-track{height:16px;border-radius:99px;background:linear-gradient(90deg,var(--night) 0%,var(--night) 21%,var(--dusk) 27%,var(--day) 36%,var(--day) 72%,var(--dusk) 79%,var(--night) 86%,var(--night) 100%)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-6px;border-radius:50%;background:var(--plum);border:4px solid var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--plum);border:4px solid var(--surface)}
+.ticks{display:flex;justify-content:space-between;font-size:.78rem;font-weight:700;color:var(--muted);font-variant-numeric:tabular-nums}
+.steps,.quick{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:6px 12px;font-weight:800;font-size:.88rem}
+.chip:hover{border-color:var(--plum)}
+.toggle{display:flex;align-items:center;gap:8px;font-weight:700;font-size:.9rem;color:var(--muted)}
+.toggle input{width:20px;height:20px;accent-color:var(--plum)}
+.rules{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:640px){.rules{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.rcard{border-radius:14px;padding:10px 12px;border:2px dashed var(--line);font-size:.9rem}
+.rcard h3{font-size:1rem;color:var(--plum)}
+.rcard p{margin:4px 0 0}
+.rcard code{font-family:var(--display);font-weight:600;font-size:1rem}
+
+/* question card */
+.qhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.qtag{font-size:.78rem;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--plum);background:var(--plum-soft);padding:4px 10px;border-radius:99px}
+.speak{border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:50%;width:42px;height:42px;display:grid;place-items:center;flex:none}
+.speak svg{width:22px;height:22px}
+.qtext{font-size:1.3rem;font-weight:700;margin:0;max-width:62ch}
+.tm{font-family:var(--display);font-weight:600;color:var(--plum);white-space:nowrap}
+.qvisual:empty{display:none}
+.qvisual{display:flex;flex-wrap:wrap;gap:18px;align-items:center}
+.qvisual .clockbox{max-width:220px}
+.cue{font-size:1.1rem;background:var(--amber-soft);padding:8px 14px;border-radius:12px}
+.answer{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-family:var(--display);font-size:1.4rem;font-weight:600}
+.ibox{width:3.2ch;font:inherit;font-size:1.8rem;text-align:center;padding:6px 4px;border-radius:12px;border:3px solid var(--line);background:var(--bg);color:var(--ink);font-variant-numeric:tabular-nums}
+.ibox.wide{width:4.4ch}
+.ibox:focus{border-color:var(--plum);outline:none}
+.colon{font-size:2rem}
+.ap{display:flex;gap:6px;margin-left:6px}
+.ap button{border:3px solid var(--line);background:var(--bg);color:var(--ink);border-radius:12px;padding:6px 14px;font-family:var(--display);font-weight:600;font-size:1.2rem}
+.ap button[aria-pressed="true"]{background:var(--plum);border-color:var(--plum);color:var(--on-plum)}
+.unit{color:var(--muted);font-size:1.1rem;margin-right:6px}
+.actions{display:flex;flex-wrap:wrap;gap:10px}
+.btn{border:0;border-radius:14px;padding:12px 20px;font-weight:800;font-size:1rem}
+.btn.primary{background:var(--plum);color:var(--on-plum)}
+.btn.ghost{background:var(--amber-soft);color:var(--ink)}
+.btn.next{background:var(--bg);color:var(--ink);border:2px solid var(--line)}
+.btn.pulse{box-shadow:0 0 0 3px var(--amber)}
+.feedback{border-radius:14px;padding:12px 16px;font-weight:700}
+.feedback.ok{background:var(--good-soft);color:var(--good)}
+.feedback.no{background:var(--bad-soft);color:var(--bad)}
+.feedback.info{background:var(--amber-soft);color:var(--ink)}
+.hintbox{border:2px dashed var(--amber);border-radius:16px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.hintbox h3{font-size:1.05rem;color:var(--amber)}
+.hintbox ol,.hintbox ul{margin:0;padding-left:1.3em}
+.hintbox li{margin:2px 0}
+.tlwrap{overflow-x:auto;padding-bottom:4px}
+.tl{display:block}
+.tl-line{stroke:var(--muted);stroke-width:3;stroke-linecap:round}
+.tl-arc{fill:none;stroke:var(--plum);stroke-width:2.5}
+.tl-head{fill:var(--plum)}
+.tl-pill{fill:var(--plum-soft);stroke:var(--plum);stroke-width:1.5}
+.tl-lab{fill:var(--plum);font:700 13px var(--body);text-anchor:middle;dominant-baseline:central}
+.tl-dot{fill:var(--amber);stroke:var(--surface);stroke-width:2}
+.tl-time{fill:var(--ink);font:600 16px var(--display);text-anchor:middle}
+
+/* timeline workspace */
+.ws{display:flex;flex-direction:column;gap:6px;border:2px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--bg);min-width:0}
+.ws-title{margin:0;font-family:var(--display);font-weight:600;font-size:1.1rem;color:var(--plum)}
+.ws-goal{margin:0;font-size:.95rem;color:var(--muted);font-weight:700}
+.ws-scroll{overflow-x:auto;padding:4px 0 6px}
+.ws-row{display:flex;align-items:flex-start;width:max-content;min-width:100%;padding:0 6px;
+  background:linear-gradient(var(--muted),var(--muted)) no-repeat 0 71px/100% 3px}
+.ws-row.back{flex-direction:row-reverse}
+.stop{display:flex;flex-direction:column;align-items:center;width:110px;flex:none;position:relative;z-index:1}
+.stop .dot{margin-top:63px;width:18px;height:18px;border-radius:50%;background:var(--amber);border:3px solid var(--bg)}
+.tin{margin-top:6px;display:flex;align-items:center;gap:2px;font-family:var(--display);font-weight:600;font-size:1.2rem}
+.sfix{margin-top:6px;font-family:var(--display);font-size:1.35rem;font-weight:600;padding:3px 6px}
+.slab{font-size:.72rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.jump{width:180px;flex:none;margin:0 -55px;height:64px;display:flex;flex-direction:column;align-items:center;position:relative;z-index:2}
+.jpill{display:flex;align-items:center;gap:3px;background:var(--plum-soft);border:2px solid var(--plum);border-radius:999px;padding:2px 8px;font-weight:800;color:var(--plum);font-size:.92rem}
+.jarc{width:170px;height:26px;display:block;margin-top:2px}
+.ws-row.back .jarc{transform:scaleX(-1)}
+.jarc path{fill:none;stroke:var(--plum);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.ibox.sm{font-size:1.15rem;width:2.9ch;padding:3px 2px;border-width:2px;border-radius:8px}
+.ibox.right{border-color:var(--good);background:var(--good-soft)}
+.ibox.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.ibox.need{border-color:var(--amber)}
+.ws-ctrl{display:flex;flex-wrap:wrap;gap:8px}
+.ws.durmode .stop{width:134px}.ws.durmode .jump{margin:0 -67px}.ws.durmode .tin{font-size:1rem;gap:3px}
+.jpill.fixed{padding:4px 12px;font-size:1rem}
+.stop .sfix.given{font-size:1.2rem}
+.ladder{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.ladder .chip{display:flex;align-items:center;gap:6px}
+.ladder .chip[aria-pressed="true"]{background:var(--plum);border-color:var(--plum);color:var(--on-plum)}
+.ladder .chip .n{font-size:.75rem;opacity:.85;font-variant-numeric:tabular-nums}
+.ladder .chip.done::after{content:"✓";color:var(--good);font-weight:900}
+.ladder .chip[aria-pressed="true"].done::after{color:var(--on-plum)}
+.dirtoggle{display:flex;gap:6px;align-items:center;font-weight:800;font-size:.88rem;color:var(--muted)}
+.dirtoggle button{border:2px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;padding:4px 12px;font-weight:800;font-size:.88rem}
+.dirtoggle button[aria-pressed="true"]{border-color:var(--plum);color:var(--plum);background:var(--plum-soft)}
+.btn.up{background:var(--good);color:var(--surface);margin-top:8px;display:inline-block}
+.pupil{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:var(--surface);border:2px solid var(--line);border-radius:16px;padding:10px 14px}
+.pupil.need{border-color:var(--amber);background:var(--amber-soft)}
+.pupil label{font-weight:800;font-size:.9rem}
+.pupil select,.pupil input[type=text]{font:inherit;font-weight:700;padding:6px 10px;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--ink);max-width:100%}
+.pupil .who{font-family:var(--display);font-weight:600;font-size:1.15rem;color:var(--plum)}
+.pupil .sp{flex:1}
+.pupil .btn{padding:8px 14px;font-size:.92rem}
+.lights{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:12px}
+.lcard{border:2px solid var(--line);border-radius:16px;padding:12px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.lcard h3{font-size:1.1rem}
+.lrow{display:flex;align-items:center;gap:10px}
+.lamp{width:22px;height:22px;border-radius:50%;flex:none;background:var(--line);box-shadow:inset 0 -3px 0 rgba(0,0,0,.15)}
+.lamp.red{background:var(--bad)} .lamp.amber{background:var(--amber)} .lamp.green{background:var(--good)}
+.lamp.sm{width:14px;height:14px}
+.lstat{font-weight:800;font-variant-numeric:tabular-nums}
+.lword{font-size:.85rem;font-weight:800;color:var(--muted)}
+.lbreak{list-style:none;margin:0;padding:6px 0 0;border-top:1px dashed var(--line);display:flex;flex-direction:column;gap:4px;font-size:.88rem}
+.lbreak li{display:flex;align-items:center;gap:8px}
+.lbreak li span:nth-child(2){flex:1;min-width:0}
+.lbreak li b{font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.88rem;font-weight:700;color:var(--muted)}
+.legend span{display:flex;align-items:center;gap:6px}
+.ctable-wrap{overflow-x:auto}
+.ctable{border-collapse:collapse;width:100%;font-size:.92rem;font-variant-numeric:tabular-nums}
+.ctable th,.ctable td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+.ctable th{font-size:.78rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.ctable td .cell{display:flex;align-items:center;gap:6px}
+.ctable tr.me td:first-child{color:var(--plum);font-weight:800}
+.confirm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-weight:700}
+.btn.danger{background:var(--bad-soft);color:var(--bad)}
+.alabel{font-family:var(--body);font-weight:800;font-size:1.05rem;margin-right:6px}
+
+/* clock svg */
+.c-rim{fill:var(--plum)} .c-face{fill:var(--surface)}
+.tk{stroke:var(--muted);stroke-width:1} .tk-b{stroke:var(--ink);stroke-width:2.5}
+.c-num{fill:var(--ink);font:600 19px var(--display);text-anchor:middle;dominant-baseline:central}
+.c-in{fill:var(--amber);font:700 11px var(--body);text-anchor:middle;dominant-baseline:central}
+.h-hand{stroke:var(--ink);stroke-width:7;stroke-linecap:round}
+.m-hand{stroke:var(--plum);stroke-width:4;stroke-linecap:round}
+.c-pin{fill:var(--amber)}
+.sun{fill:var(--day)} .sunray{stroke:var(--day);stroke-width:2.5;stroke-linecap:round} .moon{fill:var(--night)}
+
+details.teacher{font-size:.9rem;color:var(--muted)}
+details.teacher summary{cursor:pointer;font-weight:800}
+details.teacher ul{margin:6px 0 0;padding-left:1.2em}
+@media (prefers-reduced-motion:no-preference){.clock line{transition:transform .25s ease}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <svg viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="21" fill="var(--plum)"/><circle cx="23" cy="23" r="16" fill="var(--surface)"/><line x1="23" y1="23" x2="23" y2="12" stroke="var(--plum)" stroke-width="3" stroke-linecap="round"/><line x1="23" y1="23" x2="31" y2="27" stroke="var(--ink)" stroke-width="3.5" stroke-linecap="round"/><circle cx="23" cy="23" r="2.5" fill="var(--amber)"/></svg>
+      <div><h1>24-Hour Time Lab</h1><p>P3 Maths · Time</p></div>
+    </div>
+    <div class="level" role="group" aria-label="Level">
+      <button id="lv1" aria-pressed="true">Level 1</button>
+      <button id="lv2" aria-pressed="false">Level 2</button>
+    </div>
+    <div class="levelnote" id="levelnote">Level 1: times in 5-minute steps, all in 24-hour clock.</div>
+  </header>
+
+  <div class="pupil need" id="pupilBar"></div>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="explore">Explore<small>see both clocks</small></button>
+    <button role="tab" aria-selected="false" data-tab="convert">Change it<small>12h ↔ 24h</small></button>
+    <button role="tab" aria-selected="false" data-tab="read">Read it<small>clock to 24h</small></button>
+    <button role="tab" aria-selected="false" data-tab="jump">Timeline jumps<small>warm up</small></button>
+    <button role="tab" aria-selected="false" data-tab="solve">Solve it<small>word problems</small></button>
+  </nav>
+
+  <section class="panel" id="p-explore">
+    <div class="phead"><h2>Move through one day</h2>
+      <label class="toggle"><input type="checkbox" id="innerToggle" checked> Show 13–00 on clock</label></div>
+    <div class="explore">
+      <div class="clockbox"><div id="exClock"></div><div class="sky" id="exSky"></div></div>
+      <div class="readouts">
+        <div class="pair">
+          <div class="ro"><span>12-hour clock</span><b id="ex12">7:30 am</b></div>
+          <div class="ro h24"><span>24-hour clock</span><b id="ex24">07:30</b></div>
+        </div>
+        <div class="rule" id="exRule"></div>
+        <div class="daystrip">
+          <label for="dayRange">Drag through the day</label>
+          <input type="range" id="dayRange" min="0" max="1435" step="5" value="450">
+          <div class="ticks"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+        </div>
+        <div class="steps">
+          <button class="chip" data-add="-60">− 1 h</button><button class="chip" data-add="-5">− 5 min</button>
+          <button class="chip" data-add="5">+ 5 min</button><button class="chip" data-add="60">+ 1 h</button>
+        </div>
+      </div>
+    </div>
+    <div class="quick" aria-label="Times in a school day">
+      <button class="chip" data-set="405">Wake up</button><button class="chip" data-set="450">School starts</button>
+      <button class="chip" data-set="600">Recess</button><button class="chip" data-set="720">12 noon</button>
+      <button class="chip" data-set="810">Dismissal</button><button class="chip" data-set="1140">Dinner</button>
+      <button class="chip" data-set="1290">Bedtime</button><button class="chip" data-set="0">12 midnight</button>
+    </div>
+    <div class="rules">
+      <div class="rcard"><h3>am</h3><p>Keep the hour. Use 2 digits.<br><code>9:15 am → 09:15</code></p></div>
+      <div class="rcard"><h3>pm</h3><p>Add 12 to the hour.<br><code>3:40 pm → 15:40</code></p></div>
+      <div class="rcard"><h3>12 noon</h3><p>The hour stays 12.<br><code>12:20 pm → 12:20</code></p></div>
+      <div class="rcard"><h3>12 midnight</h3><p>The hour becomes 00.<br><code>12:20 am → 00:20</code></p></div>
+    </div>
+  </section>
+
+  <section class="panel" id="p-convert" hidden></section>
+  <section class="panel" id="p-read" hidden></section>
+  <section class="panel" id="p-jump" hidden></section>
+  <section class="panel" id="p-solve" hidden></section>
+  <section class="panel" id="p-progress" hidden></section>
+
+  <details class="teacher">
+    <summary>For teachers: syllabus link</summary>
+    <ul>
+      <li>P3 Measurement – Time: telling time in the 24-hour clock and converting between 12-hour and 24-hour clock.</li>
+      <li>Timeline jumps builds up counting on and back on a timeline: 1 h, 30 min, 15 min and 10 min jumps, jumping to the next o'clock, then mixed jumps. Pupils move up after 5 correct in a stage.</li>
+      <li>Finding start time, end time and duration in hours and minutes (Solve it uses a timeline model as the hint).</li>
+      <li>Adding and subtracting time in hours and minutes; changing hours to minutes and back.</li>
+      <li>Level 1 keeps times in 5-minute steps and in 24-hour form. Level 2 uses any minute, mixes 12-hour and 24-hour, and includes the midnight hour.</li>
+      <li>Progress: pupils pick their class and name, and every finished question is saved on that device. Green = at least 5 done and 80% or more correct. Amber = 50–79% correct, or fewer than 5 done. Red = under 50% correct. Grey = not started. Class view shows all pupils who used the device. To change class lists, edit <code>CLASSES</code> at the top of the script.</li>
+      <li>Answers accept 1-digit hours (9:15) but remind pupils to write 2 digits (09:15).</li>
+    </ul>
+  </details>
+</div>
+
+<script>
+/* ===== Class lists: edit these, one class per line ===== */
+const CLASSES={
+  'P3 (Mrs Sim)':['Aarian','Ammar','Caleb','Dhany','Firdaus','Iman','Laila','Naufal','Sherlyn','Thea','Waseem']
+};
+const $=s=>document.querySelector(s);
+const rnd=(a,b,step=1)=>a+step*Math.floor(Math.random()*(Math.floor((b-a)/step)+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const pad=n=>String(n).padStart(2,'0');
+const t24=m=>pad(Math.floor(m/60)%24)+':'+pad(m%60);
+const p12=m=>{const H=Math.floor(m/60)%24;return{h:(H+11)%12+1,m:m%60,ap:H<12?'am':'pm',H}};
+const t12=m=>{const p=p12(m);return p.h+':'+pad(p.m)+' '+p.ap};
+const dur=m=>{const h=Math.floor(m/60),r=m%60;return [h?h+' h':'',r?r+' min':''].filter(Boolean).join(' ')||'0 min'};
+let level=1;
+
+/* ---------- drawing ---------- */
+function clockSVG(m,inner){
+  const H=Math.floor(m/60)%24,M=m%60,ha=((H%12)+M/60)*30,ma=M*6;
+  let s='<svg viewBox="0 0 220 220" class="clock" role="img" aria-label="Clock face">';
+  s+='<circle cx="110" cy="110" r="104" class="c-rim"/><circle cx="110" cy="110" r="96" class="c-face"/>';
+  for(let i=0;i<60;i++){const a=i*Math.PI/30,b=i%5===0,r1=b?84:89,r2=93;
+    s+=`<line x1="${(110+r1*Math.sin(a)).toFixed(1)}" y1="${(110-r1*Math.cos(a)).toFixed(1)}" x2="${(110+r2*Math.sin(a)).toFixed(1)}" y2="${(110-r2*Math.cos(a)).toFixed(1)}" class="${b?'tk-b':'tk'}"/>`}
+  for(let i=1;i<=12;i++){const a=i*Math.PI/6;
+    s+=`<text x="${(110+71*Math.sin(a)).toFixed(1)}" y="${(110-71*Math.cos(a)).toFixed(1)}" class="c-num">${i}</text>`;
+    if(inner) s+=`<text x="${(110+52*Math.sin(a)).toFixed(1)}" y="${(110-52*Math.cos(a)).toFixed(1)}" class="c-in">${i===12?'00':i+12}</text>`}
+  s+=`<line x1="110" y1="110" x2="110" y2="60" class="h-hand" transform="rotate(${ha} 110 110)"/>`;
+  s+=`<line x1="110" y1="122" x2="110" y2="30" class="m-hand" transform="rotate(${ma} 110 110)"/>`;
+  return s+'<circle cx="110" cy="110" r="6" class="c-pin"/></svg>';
+}
+function skySVG(m){
+  const H=Math.floor(m/60)%24;
+  if(H>=7&&H<19){let r='';for(let i=0;i<8;i++){const a=i*Math.PI/4;r+=`<line x1="${17+10*Math.cos(a)}" y1="${17+10*Math.sin(a)}" x2="${17+15*Math.cos(a)}" y2="${17+15*Math.sin(a)}" class="sunray"/>`}
+    return `<svg viewBox="0 0 34 34" role="img" aria-label="Daytime"><circle cx="17" cy="17" r="7" class="sun"/>${r}</svg>`}
+  return '<svg viewBox="0 0 34 34" role="img" aria-label="Night-time"><path d="M22 5a12 12 0 1 0 7 19A10 10 0 0 1 22 5z" class="moon"/></svg>';
+}
+function partOfDay(m){const H=Math.floor(m/60)%24,M=m%60;
+  if(H===12&&M===0)return'at 12 noon'; if(H===0&&M===0)return'at 12 midnight';
+  if(H<5)return'after midnight'; if(H<12)return'in the morning'; if(H<18)return'in the afternoon'; if(H<21)return'in the evening'; return'at night'}
+function splitJ(S,E){const js=[];let c=S;
+  if(c%60&&E-c>60-c%60){js.push(60-c%60);c+=60-c%60}
+  const h=Math.floor((E-c)/60);if(h>0){js.push(h*60);c+=h*60}
+  if(E>c)js.push(E-c);return js}
+function timeline(S,E,v){
+  const js=splitJ(S,E),n=js.length,gap=n>2?135:165,W=60+n*gap;
+  const x=[30],st=[S];js.forEach((j,i)=>{x.push(x[i]+gap);st.push(st[i]+j)});
+  let s=`<svg viewBox="0 0 ${W} 116" width="${W}" height="116" class="tl" role="img" aria-label="Timeline"><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" class="tl-head"/></marker></defs>`;
+  s+=`<line x1="${x[0]-16}" y1="78" x2="${x[n]+16}" y2="78" class="tl-line"/>`;
+  js.forEach((j,i)=>{const a=x[i]+6,b=x[i+1]-7,mid=(x[i]+x[i+1])/2;
+    s+=`<path d="M${a} 70 Q ${mid} 14 ${b} 70" class="tl-arc" marker-end="url(#ah)"/>`;
+    s+=`<rect x="${mid-36}" y="20" width="72" height="24" rx="12" class="tl-pill"/><text x="${mid}" y="32" class="tl-lab">${v.labels?dur(j):'? '}</text>`});
+  st.forEach((t,i)=>{const show=i===0?v.start:i===n?v.end:v.mid;
+    s+=`<circle cx="${x[i]}" cy="78" r="7" class="tl-dot"/><text x="${x[i]}" y="104" class="tl-time">${show?(v.fmt||t24)(t):'?'}</text>`});
+  return `<div class="tlwrap">${s}</svg></div>`;
+}
+
+/* ---------- explore ---------- */
+let exT=450;
+function exRule(m){const p=p12(m),H=p.H;
+  if(H===0)return `Between 12 midnight and 1 am, the hour is <b>00</b>. So ${t12(m)} is <b>${t24(m)}</b>.`;
+  if(H<12)return `It is <b>am</b> (${partOfDay(m)}). Keep the hour and use 2 digits: ${p.h} → <b>${pad(H)}</b>.`;
+  if(H===12)return `Between 12 noon and 1 pm, the hour stays <b>12</b>.`;
+  return `It is <b>pm</b> (${partOfDay(m)}). Add 12 to the hour: ${p.h} + 12 = <b>${H}</b>.`}
+function drawExplore(){
+  exT=((exT%1440)+1440)%1440;
+  $('#exClock').innerHTML=clockSVG(exT,$('#innerToggle').checked);
+  $('#exSky').innerHTML=skySVG(exT);
+  $('#ex12').textContent=exT===720?'12 noon':exT===0?'12 midnight':t12(exT);
+  $('#ex24').textContent=t24(exT);
+  $('#exRule').innerHTML=exRule(exT);
+  $('#dayRange').value=exT;
+}
+$('#dayRange').addEventListener('input',e=>{exT=+e.target.value;drawExplore()});
+$('#innerToggle').addEventListener('change',drawExplore);
+document.querySelectorAll('[data-add]').forEach(b=>b.onclick=()=>{exT+=+b.dataset.add;drawExplore()});
+document.querySelectorAll('[data-set]').forEach(b=>b.onclick=()=>{exT=+b.dataset.set;drawExplore()});
+
+/* ---------- answer boxes ---------- */
+function answerUI(el,type,pre){
+  const box=(k,ph,w)=>`<input class="ibox${w?' wide':''}" id="${pre}-${k}" inputmode="numeric" autocomplete="off" maxlength="${w?3:2}" placeholder="${ph}" aria-label="${ph}">`;
+  let h='';
+  if(type==='time24')h=box('a','hh')+'<span class="colon">:</span>'+box('b','mm');
+  if(type==='time12')h=box('a','h')+'<span class="colon">:</span>'+box('b','mm')+`<div class="ap"><button type="button" data-ap="am" aria-pressed="false">am</button><button type="button" data-ap="pm" aria-pressed="false">pm</button></div>`;
+  if(type==='dur')h=box('a','h')+'<span class="unit">h</span>'+box('b','min')+'<span class="unit">min</span>';
+  if(type==='mins')h=box('a','min',1)+'<span class="unit">min</span>';
+  el.innerHTML=h;
+  let ap='';
+  el.querySelectorAll('[data-ap]').forEach(b=>b.onclick=()=>{ap=b.dataset.ap;el.querySelectorAll('[data-ap]').forEach(x=>x.setAttribute('aria-pressed',x===b))});
+  const a=el.querySelector(`#${pre}-a`),bb=el.querySelector(`#${pre}-b`);
+  el.querySelectorAll('input').forEach(i=>i.addEventListener('input',()=>{i.value=i.value.replace(/\D/g,'')}));
+  if(a&&bb&&type!=='dur')a.addEventListener('input',()=>{if(a.value.length===2)bb.focus()});
+  return()=>({a:a?a.value.trim():'',b:bb?bb.value.trim():'',ap});
+}
+function judge(type,ans,v){
+  if(type==='time24'){if(v.a===''||v.b==='')return{empty:1,msg:'Fill in the hours and the minutes.'};
+    const H=+v.a,M=+v.b;if(H>23||M>59)return{ok:0,msg:'In 24-hour time, hours go from 00 to 23 and minutes from 00 to 59.'};
+    const ok=H*60+M===ans;return{ok,tip:ok&&v.a.length<2?`Remember to write 2 digits for the hour: ${t24(ans)}.`:''}}
+  if(type==='time12'){if(v.a===''||v.b==='')return{empty:1,msg:'Fill in the hours and the minutes.'};
+    if(!v.ap)return{empty:1,msg:'Choose am or pm.'};
+    const h=+v.a,M=+v.b;if(h<1||h>12||M>59)return{ok:0,msg:'In 12-hour time, the hour is from 1 to 12.'};
+    return{ok:((h%12)+(v.ap==='pm'?12:0))*60+M===ans}}
+  if(type==='dur'){if(v.a===''&&v.b==='')return{empty:1,msg:'Fill in the hours and minutes. Write 0 if there are none.'};
+    const h=+v.a||0,M=+v.b||0;if(M>=60&&h*60+M===ans)return{ok:0,msg:'So close! Change 60 min into 1 h.'};
+    return{ok:h*60+M===ans}}
+  if(type==='mins'){if(v.a==='')return{empty:1,msg:'Type the number of minutes.'};return{ok:+v.a===ans}}
+}
+const ansText=(type,a)=>type==='none'?'':type==='time24'?t24(a):type==='time12'?t12(a):type==='dur'?dur(a):a+' min';
+function say(t){try{const s=window.speechSynthesis;if(!s)return;s.cancel();
+  const u=new SpeechSynthesisUtterance(t.replace(/<[^>]+>/g,'').replace(/(\d+) h\b/g,'$1 hours').replace(/(\d+) min\b/g,'$1 minutes'));
+  u.lang='en-GB';u.rate=.9;s.speak(u)}catch(e){}}
+
+/* ---------- timeline workspace (pupil's working) ---------- */
+const ARC='<svg class="jarc" viewBox="0 0 170 26" aria-hidden="true"><path d="M6 24 Q85 -4 164 24"/><path d="M151 23 L164 24 L158 12"/></svg>';
+function workspace(el,cfg){
+  const sign=cfg.dir>0?'+':'−',DM=cfg.mode==='dur',fmt=DM?dur:t24,plan=cfg.plan;
+  const tin=()=>DM?'<div class="tin"><input class="ibox sm" data-k="h" inputmode="numeric" maxlength="1" placeholder="0" aria-label="hours">h<input class="ibox sm" data-k="m" inputmode="numeric" maxlength="2" placeholder="00" aria-label="minutes">min</div>':'<div class="tin"><input class="ibox sm" data-k="h" inputmode="numeric" maxlength="2" placeholder="hh" aria-label="hours">:<input class="ibox sm" data-k="m" inputmode="numeric" maxlength="2" placeholder="mm" aria-label="minutes"></div>';
+  const jin=()=>`<div class="jpill">${sign}<input class="ibox sm" data-k="jh" inputmode="numeric" maxlength="1" placeholder="0" aria-label="jump hours">h<input class="ibox sm" data-k="jm" inputmode="numeric" maxlength="2" placeholder="00" aria-label="jump minutes">min</div>`;
+  const jumpHTML=j=>j==null?`<div class="jump">${jin()}${ARC}</div>`:`<div class="jump" data-v="${j}"><div class="jpill fixed">${sign} ${dur(j)}</div>${ARC}</div>`;
+  const stopHTML=t=>t==null?`<div class="stop"><span class="dot"></span>${tin()}</div>`:`<div class="stop" data-v="${t}"><span class="dot"></span><div class="sfix given">${fmt(t)}</div></div>`;
+  const anchorHTML=`<div class="stop" data-anchor="1"${cfg.lock?` data-v="${cfg.anchor}"`:''}><span class="dot"></span>${cfg.lock?`<div class="sfix">${fmt(cfg.anchor)}</div>`:tin()}<span class="slab">start</span></div>`;
+  el.innerHTML=`<div class="ws${DM?' durmode':''}"><p class="ws-title">${plan?'Fill in the timeline':'Show your working on the timeline'}</p><p class="ws-goal">${cfg.goal}</p>
+    <div class="ws-scroll"><div class="ws-row${cfg.dir<0?' back':''}">${anchorHTML}${plan?plan.map(p=>jumpHTML(p.j)+stopHTML(p.t)).join(''):''}</div></div>
+    ${plan?'':'<div class="ws-ctrl"><button type="button" class="chip" data-w="add">+ Add a jump</button><button type="button" class="chip" data-w="del">Remove last jump</button></div>'}</div>`;
+  const row=el.querySelector('.ws-row'),scroll=el.querySelector('.ws-scroll');
+  const clean=i=>{if(i.dataset.c)return;i.dataset.c=1;i.addEventListener('input',()=>{i.value=i.value.replace(/\D/g,'');i.classList.remove('wrong','need','right')})};
+  function add(){if(row.querySelectorAll('.jump').length>=5)return;
+    row.insertAdjacentHTML('beforeend',jumpHTML(null)+stopHTML(null));
+    row.querySelectorAll('input').forEach(clean);
+    scroll.scrollLeft=cfg.dir>0?scroll.scrollWidth:-scroll.scrollWidth;}
+  function del(){const j=row.querySelectorAll('.jump');if(j.length<=1)return;row.lastElementChild.remove();row.lastElementChild.remove()}
+  if(!plan){el.querySelector('[data-w=add]').onclick=add;el.querySelector('[data-w=del]').onclick=del;}
+  row.querySelectorAll('input').forEach(clean);
+  if(!plan)add();
+  const mark=(nodes,c)=>nodes.forEach(n=>n.querySelectorAll('input').forEach(i=>{i.classList.remove('right','wrong','need');if(c)i.classList.add(c)}));
+  return{check(){
+    const stops=[...row.querySelectorAll('.stop')],jumps=[...row.querySelectorAll('.jump')];
+    mark([...stops,...jumps],'');
+    const val=(n,k)=>{const i=n.querySelector(`[data-k=${k}]`);return i?i.value.trim():''};
+    const fixed=n=>n.dataset.v!=null;
+    let empty=false;
+    stops.forEach(s=>{if(fixed(s))return;if(DM?(val(s,'h')===''&&val(s,'m')===''):(val(s,'h')===''||val(s,'m')==='')){empty=true;s.querySelectorAll('input').forEach(x=>{if(!x.value)x.classList.add('need')})}});
+    jumps.forEach(j=>{if(fixed(j))return;if(val(j,'jh')===''&&val(j,'jm')===''){empty=true;mark([j],'need')}});
+    if(empty)return{state:'empty'};
+    const T=s=>{if(fixed(s))return +s.dataset.v;const h=+val(s,'h')||0,m=+val(s,'m')||0;return(h>23||m>59)?-1:h*60+m};
+    let prev=cfg.anchor;
+    if(!cfg.lock){const a=T(stops[0]);
+      if(a!==cfg.anchor){mark([stops[0]],'wrong');return{state:'bad',msg:`Check your first box. Change ${cfg.anchorText} to 24-hour clock.`}}
+      mark([stops[0]],'right')}
+    let sum=0;
+    for(let i=0;i<jumps.length;i++){
+      let j;
+      if(fixed(jumps[i]))j=+jumps[i].dataset.v;
+      else{const jh=+val(jumps[i],'jh')||0,jm=+val(jumps[i],'jm')||0;j=jh*60+jm;
+        if(jm>=60){mark([jumps[i]],'wrong');return{state:'bad',msg:'In a jump, write 60 min as 1 h.'}}
+        if(j===0){mark([jumps[i]],'wrong');return{state:'bad',msg:'Each jump needs some hours or minutes.'}}
+        if(fixed(stops[i+1])&&prev+cfg.dir*j!==+stops[i+1].dataset.v){mark([jumps[i]],'wrong');return{state:'bad',msg:`How long is the jump from ${fmt(prev)} to ${fmt(+stops[i+1].dataset.v)}?`}}
+        mark([jumps[i]],'right');}
+      const want=prev+cfg.dir*j,got=T(stops[i+1]);
+      if(got!==want){mark([stops[i+1]],'wrong');return{state:'bad',msg:`Check this stop: ${fmt(prev)} ${sign} ${dur(j)} = ?`+(DM&&+val(stops[i+1],'m')>59?' Remember: 60 min = 1 h.':'')}}
+      mark([stops[i+1]],'right');prev=want;sum+=j;}
+    if(cfg.goalStop!=null&&prev!==cfg.goalStop)return{state:'bad',msg:prev<cfg.goalStop?`Your jumps are right, but you have not reached ${cfg.goalText} yet. Add another jump.`:`You went past ${cfg.goalText}. Make the last jump smaller.`};
+    if(cfg.goalSum!=null&&sum!==cfg.goalSum)return{state:'bad',msg:`Your jumps add up to ${dur(sum)}. They must add up to ${dur(cfg.goalSum)}.`};
+    return{state:'ok',last:prev,sum};
+  }};
+}
+
+/* ---------- practice card ---------- */
+const SPK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+function practice(id,title,gen,opts={}){
+  const root=$('#p-'+id);
+  root.innerHTML=`<div class="phead"><h2>${title}</h2><span class="score" id="${id}-score"></span></div>${opts.top||''}
+  <div class="qhead"><span class="qtag" id="${id}-tag"></span><button class="speak" id="${id}-spk" aria-label="Read the question aloud">${SPK}</button></div>
+  <p class="qtext" id="${id}-q"></p><div class="qvisual" id="${id}-v"></div><div id="${id}-work"></div>
+  <form class="answer" id="${id}-ans" autocomplete="off"></form>
+  <div class="actions"><button class="btn primary" id="${id}-chk">Check</button><button class="btn ghost" id="${id}-hint">Hint</button><button class="btn next" id="${id}-next">Next question</button></div>
+  <div class="feedback" id="${id}-fb" hidden></div><div class="hintbox" id="${id}-hb" hidden></div>`;
+  const sc={right:0,total:0,streak:0};let q,get,tries,done,ws;
+  const fb=$(`#${id}-fb`),hb=$(`#${id}-hb`),hintBtn=$(`#${id}-hint`);
+  const showScore=()=>{$(`#${id}-score`).textContent=`★ ${sc.right} of ${sc.total}`+(sc.streak>1?` · streak ${sc.streak}`:'')};
+  const feedback=(cls,html)=>{fb.className='feedback '+cls;fb.innerHTML=html;fb.hidden=false};
+  function next(){q=gen();tries=0;done=false;
+    $(`#${id}-tag`).textContent=q.tag;$(`#${id}-q`).innerHTML=q.text;$(`#${id}-v`).innerHTML=q.visual||'';
+    get=answerUI($(`#${id}-ans`),q.type,id);fb.hidden=true;hb.hidden=true;hintBtn.classList.remove('pulse');
+    const wEl=$(`#${id}-work`);
+    $(`#${id}-ans`).hidden=q.type==='none';
+    if(q.ws){ws=workspace(wEl,q.ws);if(q.type!=='none')$(`#${id}-ans`).insertAdjacentHTML('afterbegin','<span class="alabel">Answer:</span>')}
+    else{ws=null;wEl.innerHTML=''}}
+  function wrong(msg){tries++;
+    if(tries<2){feedback('no',(msg?msg+' ':'')+'Try once more. Tap <b>Hint</b> for help.');hintBtn.classList.add('pulse')}
+    else{done=true;sc.total++;sc.streak=0;logResult(id,q.tag,false);
+      feedback('no',q.type==='none'?'Read the steps below, then try the next one.':`The answer is <b>${ansText(q.type,q.ans)}</b>. Read the steps below, then try the next one.`);
+      hb.innerHTML='<h3>How to work it out</h3>'+q.sol;hb.hidden=false;}
+    showScore()}
+  function check(){if(done){next();return}
+    let w=null;
+    if(ws){w=ws.check();
+      if(w.state==='empty'){feedback('info','Show your working first. Fill in every box on the timeline.');return}
+      if(w.state==='bad'){wrong(w.msg);return}
+      if(q.type==='none'){done=true;tries++;sc.right++;sc.total++;sc.streak++;logResult(id,q.tag,true);
+        feedback('ok',`${pick(['Well done!','Correct!','Great work!','You got it!'])} Every stop is right.`+(opts.onRight?opts.onRight():''));
+        hb.hidden=true;showScore();return}}
+    const r=judge(q.type,q.ans,get());
+    if(r.empty){feedback('info',w?'Your timeline is correct! Now write the answer.':r.msg);return}
+    if(r.ok){done=true;tries++;sc.right++;sc.total++;sc.streak++;logResult(id,q.tag,true);
+      feedback('ok',`${pick(['Well done!','Correct!','Great work!','You got it!'])} ${w?'Your timeline and answer are both right.':''} The answer is <b>${ansText(q.type,q.ans)}</b>.`+(r.tip?`<br><span style="font-weight:600">${r.tip}</span>`:''));
+      hb.hidden=true;showScore();return}
+    wrong(r.msg||(w?'Your timeline is right. Look at it again to find the answer.':'Not yet.'));}
+  $(`#${id}-ans`).addEventListener('submit',e=>{e.preventDefault();check()});
+  $(`#${id}-ans`).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();check()}});
+  $(`#${id}-chk`).onclick=check;
+  $(`#${id}-next`).onclick=next;
+  hintBtn.onclick=()=>{hb.innerHTML='<h3>Hint</h3>'+q.hint;hb.hidden=false;hintBtn.classList.remove('pulse')};
+  $(`#${id}-spk`).onclick=()=>say(q.text+(q.cue?' '+q.cue:''));
+  showScore();next();
+  return{next,root};
+}
+
+/* ---------- generators ---------- */
+const RULES12to24='<ul><li><b>am:</b> keep the hour, use 2 digits (9 → 09).</li><li><b>pm:</b> add 12 to the hour (3 → 15).</li><li><b>12 noon hour:</b> stays 12.</li><li><b>12 midnight hour:</b> becomes 00.</li></ul>';
+const RULES24to12='<ul><li>Hour <b>00</b> → 12 am (just after midnight).</li><li>Hour <b>01 to 11</b> → same hour, <b>am</b>.</li><li>Hour <b>12</b> → 12 pm (just after noon).</li><li>Hour <b>13 to 23</b> → take away 12, <b>pm</b>.</li></ul>';
+function stepsTo24(m){const p=p12(m);
+  if(p.H===0)return `It is 12 midnight hour, so the hour becomes 00. ${t12(m)} → <b>${t24(m)}</b>`;
+  if(p.H<12)return `It is am, so keep the hour: ${p.h} → ${pad(p.H)}. ${t12(m)} → <b>${t24(m)}</b>`;
+  if(p.H===12)return `It is the 12 noon hour, so the hour stays 12. ${t12(m)} → <b>${t24(m)}</b>`;
+  return `It is pm, so add 12: ${p.h} + 12 = ${p.H}. ${t12(m)} → <b>${t24(m)}</b>`}
+function stepsTo12(m){const p=p12(m);
+  if(p.H===0)return `Hour 00 is the 12 midnight hour. ${t24(m)} → <b>${t12(m)}</b>`;
+  if(p.H<12)return `${pad(p.H)} is less than 12, so it is am. ${t24(m)} → <b>${t12(m)}</b>`;
+  if(p.H===12)return `Hour 12 is the 12 noon hour, so it is pm. ${t24(m)} → <b>${t12(m)}</b>`;
+  return `${p.H} is more than 12, so take away 12: ${p.H} − 12 = ${p.h}. It is pm. ${t24(m)} → <b>${t12(m)}</b>`}
+
+function genConvert(){
+  let H=level===1?rnd(1,23):rnd(0,23);const M=level===1?rnd(0,55,5):rnd(0,59);
+  if(Math.random()<.15)H=level===1?12:pick([12,0]);
+  const m=H*60+M;
+  if(Math.random()<.5)return{tag:'12-hour → 24-hour',text:`Write <span class="tm">${t12(m)}</span> in 24-hour clock.`,type:'time24',ans:m,hint:RULES12to24,sol:`<p>${stepsTo24(m)}</p>`};
+  return{tag:'24-hour → 12-hour',text:`Write <span class="tm">${t24(m)}</span> in 12-hour clock. Choose am or pm.`,type:'time12',ans:m,hint:RULES24to12,sol:`<p>${stepsTo12(m)}</p>`};
+}
+function handWords(m){const p=p12(m),M=p.m;
+  const hr=M===0?`The short hand points at ${p.h}.`:`The short hand is just past ${p.h}, so the hour is ${p.h}.`;
+  const mn=M%5===0?(M===0?'The long hand points at 12, so it is 0 minutes.':`The long hand points at ${M/5}. Count in 5s: ${M/5} × 5 = ${M} min.`)
+    :`The long hand is ${M} small marks after 12, so it is ${M} min.`;
+  return[hr,mn]}
+function genRead(){
+  const H=level===1?rnd(6,22):rnd(0,23),M=level===1?rnd(0,55,5):rnd(0,59),m=H*60+M;
+  const ask24=Math.random()<(level===1?.75:.6),pod=partOfDay(m);
+  const[hr,mn]=handWords(m);
+  return{tag:ask24?'Clock → 24-hour':'Clock → 12-hour',
+    text:`What time is it? Write it in ${ask24?'24-hour':'12-hour'} clock.`,
+    cue:`It is ${pod}.`,
+    visual:`<div class="clockbox"><div>${clockSVG(m,false)}</div><div class="sky">${skySVG(m)}</div></div><div class="cue">It is <b>${pod}</b>.</div>`,
+    type:ask24?'time24':'time12',ans:m,
+    hint:`<ol><li>Look at the <b>short hand</b> for the hour.</li><li>Look at the <b>long hand</b> for the minutes. Count in 5s.</li><li>Read the clue: is it am or pm?</li>${ask24?'<li>If it is pm, add 12 to the hour.</li>':''}</ol>`,
+    sol:`<ol><li>${hr}</li><li>${mn}</li><li>It is ${pod}, so it is <b>${t12(m)}</b>.</li>${ask24?`<li>${stepsTo24(m)}</li>`:''}</ol>`};
+}
+
+const NAMES=['Wei Ming','Aisha','Ravi','Mei Ling','Hafiz','Priya','Jun Kai','Siti','Ethan','Nurul','Arjun','Hui Min'];
+const LESSONS=['swimming lesson','piano class','art class','football training','baking class','chess club','dance practice'];
+const EVENTS=['movie','school concert','magic show','puppet show','family picnic','birthday party'];
+const PLACES=['the zoo','Sentosa','the Science Centre','the library','East Coast Park','Gardens by the Bay','Grandma\'s house'];
+const showT=m=>(level===2&&Math.random()<.5)?t12(m):t24(m);
+const tm=s=>`<span class="tm">${s}</span>`;
+function firstHint(A,dir,given,lead,D){
+  const conv=given.includes('m')?`<li>Change ${given} to 24-hour clock first.</li>`:'';
+  const M=A%60,H=Math.floor(A/60);
+  let step;
+  if(dir>0)step=M&&D>60-M?`First jump: from ${t24(A)}, how many minutes to the next o'clock, ${pad(H+1)}:00?`:(M?`The jump is short. Count on in minutes.`:`${t24(A)} is an o'clock time. Jump the hours first.`);
+  else step=M&&D>M?`First jump: count back ${M} min from ${t24(A)} to ${pad(H)}:00.`:(M?`The jump is short. Count back in minutes.`:`${t24(A)} is an o'clock time. Count back the hours first.`);
+  return `<ol>${conv}<li>${lead}</li><li>${step}</li><li>Then jump the hours, then the minutes left over.</li><li>Write how long each jump is, and the time where you land.</li></ol>`;
+}
+function conv12note(given,m){return given.includes('m')?`<li>First change ${given} to 24-hour clock: <b>${t24(m)}</b>.</li>`:''}
+
+function genSolve(){
+  const kind=pick(level===1?['end','end','start','start','dur','dur','add']:['end','end','start','start','dur','dur','add']);
+  const name=pick(NAMES);
+  const dRange=level===1?[20,150]:[25,255];
+  if(kind==='end'){
+    const D=rnd(dRange[0],dRange[1],5),S=rnd(420,Math.min(1260-D,1020),5),E=S+D,gs=showT(S),js=splitJ(S,E);
+    let st=S,lines=js.map(j=>{const a=st;st+=j;return `<li>${t24(a)} + ${dur(j)} → ${t24(st)}</li>`}).join('');
+    return{tag:'Find the end time',text:`${name}'s ${pick(LESSONS)} started at ${tm(gs)}. It lasted ${tm(dur(D))}. What time did it end? Give your answer in 24-hour clock.`,type:'time24',ans:E,
+      ws:{dir:1,anchor:S,lock:gs===t24(S),anchorText:gs,goalSum:D,goal:`Start at ${gs}. Your jumps must add up to ${dur(D)}.`},
+      hint:firstHint(S,1,gs,`Break ${dur(D)} into jumps.`,D),
+      sol:`<ol>${conv12note(gs,S)}${lines}<li>It ended at <b>${t24(E)}</b>.</li></ol>${timeline(S,E,{start:1,end:1,mid:1,labels:1})}`};
+  }
+  if(kind==='start'){
+    const D=rnd(dRange[0],dRange[1],5),E=rnd(Math.max(480+D,600),1290,5),S=E-D,ge=showT(E),js=splitJ(S,E).reverse();
+    let st=E,lines=js.map(j=>{const a=st;st-=j;return `<li>${t24(a)} − ${dur(j)} → ${t24(st)}</li>`}).join('');
+    return{tag:'Find the start time',text:`A ${pick(EVENTS)} ended at ${tm(ge)}. It lasted ${tm(dur(D))}. What time did it start? Give your answer in 24-hour clock.`,type:'time24',ans:S,
+      ws:{dir:-1,anchor:E,lock:ge===t24(E),anchorText:ge,goalSum:D,goal:`Start at the end time, ${ge}, and count back. Your jumps must add up to ${dur(D)}.`},
+      hint:firstHint(E,-1,ge,`Count back ${dur(D)} in jumps.`,D),
+      sol:`<ol>${conv12note(ge,E)}${lines}<li>It started at <b>${t24(S)}</b>.</li></ol>${timeline(S,E,{start:1,end:1,mid:1,labels:1})}`};
+  }
+  if(kind==='dur'){
+    const D=rnd(dRange[0],dRange[1],5),S=rnd(420,1260-D,5),E=S+D,gs=showT(S),ge=showT(E),js=splitJ(S,E);
+    let st=S,lines=js.map(j=>{const a=st;st+=j;return `<li>${t24(a)} → ${t24(st)} is ${dur(j)}</li>`}).join('');
+    return{tag:'Find how long',text:`${name} left home at ${tm(gs)} and reached ${pick(PLACES)} at ${tm(ge)}. How long did the journey take?`,type:'dur',ans:D,
+      ws:{dir:1,anchor:S,lock:gs===t24(S),anchorText:gs,goalStop:E,goalText:ge,goal:`Start at ${gs}. Jump until you reach ${ge}. Then add up your jumps.`},
+      hint:firstHint(S,1,gs,`Jump from the start time to the end time.`,D),
+      sol:`<ol>${conv12note(gs,S)}${conv12note(ge,E)}${lines}<li>Add the jumps: ${js.map(dur).join(' + ')} = <b>${dur(D)}</b></li></ol>${timeline(S,E,{start:1,end:1,mid:1,labels:1})}`};
+  }
+  {
+    const add=true,a=rnd(level===1?45:70,level===1?170:230,5),b=rnd(level===1?25:35,add?(level===1?110:170):a-20,5);
+    const ans=add?a+b:a-b,S=add?a:ans,E=add?ans:a;
+    const js=add?splitJ(a,ans):splitJ(ans,a).reverse();
+    let st=a,lines=js.map(j=>{const p=st;st+=add?j:-j;return `<li>${dur(p)} ${add?'+':'−'} ${dur(j)} → ${dur(st)}</li>`}).join('');
+    const am=a%60,ah=Math.floor(a/60);
+    let step;
+    if(add)step=am&&b>60-am?`First jump: from ${dur(a)}, how many minutes to ${ah+1} h?`:'Then jump the hours, then the minutes left over.';
+    else step=am&&b>am?`First jump: count back ${am} min from ${dur(a)} to ${ah} h.`:'Count back the hours first, then the minutes.';
+    const text=add?`${name} spent ${tm(dur(a))} on homework and ${tm(dur(b))} reading. How much time did ${name} spend altogether?`
+      :`A ${pick(['movie','car ride','school trip'])} is ${tm(dur(a))} long. ${name} has already spent ${tm(dur(b))} on it. How much time is left?`;
+    return{tag:add?'Add time':'Subtract time',text,type:'dur',ans,
+      ws:{mode:'dur',dir:add?1:-1,anchor:a,lock:true,goalSum:b,goal:add?`Start at ${dur(a)}. Add ${dur(b)} in jumps. Where do you land?`:`Start at ${dur(a)}. Count back ${dur(b)} in jumps. Where do you land?`},
+      hint:`<ol><li>Start at ${dur(a)}.</li><li>${add?'Add':'Count back'} ${dur(b)} in jumps. Your jumps must add up to ${dur(b)}.</li><li>${step}</li><li>Remember: 60 min = 1 h.</li></ol>`,
+      sol:`<ol>${lines}<li>You land on <b>${dur(ans)}</b>.</li></ol>${timeline(S,E,{start:1,end:1,mid:1,labels:1,fmt:dur})}`};
+  }
+}
+
+/* ---------- timeline jumps (scaffold ladder) ---------- */
+const STAGES=[
+  {name:'1 h jumps',size:60},{name:'30 min jumps',size:30},{name:'15 min jumps',size:15},{name:'10 min jumps',size:10},
+  {name:"Jump to the o'clock",size:'oc'},{name:'Mixed jumps',size:'mix'}];
+let stage=0,jdir=1;const stageRight=STAGES.map(()=>0);
+const SIZE_HINT={60:'<li>A 1 h jump: the hour changes by 1. The minutes stay the same.</li><li>Example: 09:15 + 1 h = 10:15</li>',
+  30:'<li>Two 30 min jumps make 1 h.</li><li>From :30, a 30 min jump lands on the o\'clock. Example: 09:30 + 30 min = 10:00</li>',
+  15:'<li>Four 15 min jumps make 1 h.</li><li>Count the minutes: 00, 15, 30, 45, then the next o\'clock.</li><li>Example: 09:45 + 15 min = 10:00</li>',
+  10:'<li>Six 10 min jumps make 1 h.</li><li>Count the minutes in 10s: 00, 10, 20, 30, 40, 50, then the next o\'clock.</li><li>Example: 09:50 + 10 min = 10:00</li>'};
+const BACK_HINT='<li>Counting back: the time gets earlier. From an o\'clock, count back into the hour before. Example: 10:00 − 15 min = 09:45</li>';
+function genJump(){
+  const st=STAGES[stage],dir=jdir,sg=dir>0?'+':'−',word=dir>0?'forward':'back';
+  let A,js,plan,text,hint,tag=st.name+(dir<0?' (back)':'');
+  if(typeof st.size==='number'){
+    const sz=st.size,n=sz===60?3:4,minStep=level===1?Math.max(sz,15):5;
+    let am=sz===60?(level===1?pick([0,0,30]):rnd(0,55,5)):rnd(0,60-sz,minStep>sz?sz:sz);
+    if(sz===10&&level===1)am=dir>0?pick([20,30,40,50]):pick([0,10,20,30]);
+    if(sz===15&&level===1)am=dir>0?pick([15,30,45]):pick([0,15,30]);
+    if(sz===30)am=pick([0,30]);
+    const ah=dir>0?rnd(7,17):rnd(10,20);A=ah*60+am;
+    js=Array(n).fill(sz);
+    let cur=A;plan=js.map(j=>{cur+=dir*j;return{j,t:null}});
+    text=`Start at ${tm(t24(A))}. Jump ${word} ${dur(sz)} each time. Write the time at each stop.`;
+    hint=`<ul>${SIZE_HINT[sz]}${dir<0?BACK_HINT:''}<li>Do one jump at a time.</li></ul>`;
+  }else if(st.size==='oc'){
+    const am=rnd(level===1?2:1,level===1?11:11,1)*5,ah=rnd(8,18);A=ah*60+am;
+    const target=dir>0?(ah+1)*60:ah*60,j=dir>0?60-am:am;js=[j];
+    plan=[{j:null,t:target}];
+    text=dir>0?`How long is the jump from ${tm(t24(A))} to ${tm(t24(target))}?`:`How long is the jump back from ${tm(t24(A))} to ${tm(t24(target))}?`;
+    hint=dir>0?`<ul><li>The next o'clock is at 60 min.</li><li>Count on from ${am} to 60. ${am} + ? = 60</li></ul>`:`<ul><li>Count back from ${am} min to 0 min (the o'clock).</li><li>From :${pad(am)} back to :00 is the same number of minutes as the minutes in the time.</li></ul>`;
+    tag=st.name+(dir<0?' (back)':'');
+  }else{
+    const am=rnd(level===1?2:1,10,1)*5,ah=dir>0?rnd(7,15):rnd(11,19);A=ah*60+am;
+    const hrs=level===1?1:rnd(1,2),rest=rnd(1,level===1?9:11,1)*5;
+    js=dir>0?[60-am,hrs*60,rest]:[am,hrs*60,rest];
+    plan=js.map(j=>({j,t:null}));
+    text=`Start at ${tm(t24(A))}. Follow the jumps. Write the time at each stop.`;
+    hint=`<ul><li>The first jump takes you to the o'clock.</li><li>Then jump the hours: only the hour changes.</li><li>Then jump the minutes that are left.</li>${dir<0?BACK_HINT:''}</ul>`;
+  }
+  let cur=A;const lines=js.map(j=>{const p=cur;cur+=dir*j;return `<li>${t24(p)} ${sg} ${dur(j)} → ${t24(cur)}</li>`}).join('');
+  return{tag,text,type:'none',ans:cur,ws:{dir,anchor:A,lock:true,plan,goal:st.size==='oc'?'Type the jump in the pill above the arrow.':`Each arrow is one jump ${word}.`},hint,sol:`<ol>${lines}</ol>`};
+}
+function ladderHTML(){return STAGES.map((s,i)=>`<button type="button" class="chip${stageRight[i]>=5?' done':''}" data-stage="${i}" aria-pressed="${i===stage}">${i+1}. ${s.name}<span class="n">${Math.min(stageRight[i],5)}/5</span></button>`).join('')}
+
+/* ---------- pupil progress (saved on this device) ---------- */
+const STATIONS=[{id:'convert',name:'Change it'},{id:'read',name:'Read it'},{id:'jump',name:'Timeline jumps'},{id:'solve',name:'Solve it'}];
+const STORE='timeLabProgress.v1';
+let DB={pupils:{},current:null};
+try{const raw=localStorage.getItem(STORE);if(raw)DB=Object.assign(DB,JSON.parse(raw))}catch(e){}
+const saveDB=()=>{try{localStorage.setItem(STORE,JSON.stringify(DB))}catch(e){}};
+const pkey=(c,n)=>c+'|'+n;
+const cur=()=>DB.current&&DB.pupils[DB.current];
+function logResult(station,tag,ok){
+  const p=cur();if(!p)return;
+  const st=p.st[station]||(p.st[station]={done:0,right:0,tags:{}});
+  const t=st.tags[tag]||(st.tags[tag]={done:0,right:0});
+  st.done++;t.done++;if(ok){st.right++;t.right++}
+  p.last=Date.now();saveDB();
+}
+function light(done,right){
+  if(!done)return{c:'',w:'Not started'};
+  const pc=right/done;
+  if(pc<.5)return{c:'red',w:'Needs help'};
+  if(pc<.8||done<5)return{c:'amber',w:'Getting there'};
+  return{c:'green',w:'Secure'};
+}
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function pupilBar(){
+  const bar=$('#pupilBar'),p=cur();
+  if(p){bar.classList.remove('need');
+    bar.innerHTML=`<span>Practising as</span><span class="who">${esc(p.name)}</span><span class="lword">${esc(p.cls)}</span><span class="sp"></span>
+      <button type="button" class="btn ghost" id="showProg">My progress</button><button type="button" class="btn next" id="switchP">Change pupil</button>`;
+    $('#showProg').onclick=()=>showProgress();$('#switchP').onclick=()=>{DB.current=null;saveDB();pupilBar();loadStages()};
+    return}
+  bar.classList.add('need');
+  const cls=Object.keys(CLASSES);
+  bar.innerHTML=`<label for="pClass">Class</label><select id="pClass">${cls.map(c=>`<option>${esc(c)}</option>`).join('')}</select>
+    <label for="pName">Name</label><select id="pName"></select><input type="text" id="pOther" placeholder="Type your name" maxlength="30" hidden>
+    <button type="button" class="btn primary" id="pGo">Start</button><span class="sp"></span><button type="button" class="btn next" id="pClassView">Class view</button>
+    <span class="lword" style="width:100%">Choose your name so your progress is saved.</span>`;
+  const fill=()=>{const list=CLASSES[$('#pClass').value]||[];$('#pName').innerHTML='<option value="">Choose…</option>'+list.map(n=>`<option>${esc(n)}</option>`).join('')+'<option value="__other">My name is not here</option>';$('#pOther').hidden=true};
+  $('#pClass').onchange=fill;fill();
+  $('#pName').onchange=()=>{$('#pOther').hidden=$('#pName').value!=='__other'};
+  $('#pClassView').onclick=()=>showProgress();
+  $('#pGo').onclick=()=>{let n=$('#pName').value;if(n==='__other')n=$('#pOther').value.trim();
+    if(!n){$('#pName').focus();return}
+    const c=$('#pClass').value,k=pkey(c,n);
+    if(!DB.pupils[k])DB.pupils[k]={name:n,cls:c,st:{},stages:STAGES.map(()=>0),last:Date.now()};
+    DB.current=k;saveDB();pupilBar();loadStages();
+    if(!$('#p-progress').hidden)showProgress()};
+}
+function stationCard(p,s){
+  const st=(p&&p.st[s.id])||{done:0,right:0,tags:{}},L=light(st.done,st.right);
+  const tags=Object.entries(st.tags);
+  return `<div class="lcard"><h3>${s.name}</h3>
+    <div class="lrow"><span class="lamp ${L.c}" role="img" aria-label="${L.w}"></span><span class="lstat">${st.right} correct of ${st.done} done</span></div>
+    <span class="lword">${L.w}${st.done?` · ${Math.round(100*st.right/st.done)}%`:''}</span>
+    ${tags.length?`<ul class="lbreak">${tags.map(([t,v])=>{const l=light(v.done,v.right);return `<li><span class="lamp sm ${l.c}"></span><span>${esc(t)}</span><b>${v.right}/${v.done}</b></li>`}).join('')}</ul>`:''}</div>`;
+}
+const LEGEND='<div class="legend"><span><i class="lamp sm green"></i>Secure: 5+ done, 80%+ correct</span><span><i class="lamp sm amber"></i>Getting there: 50–79%, or fewer than 5 done</span><span><i class="lamp sm red"></i>Needs help: under 50%</span><span><i class="lamp sm"></i>Not started</span></div>';
+function showProgress(){
+  document.querySelectorAll('[role=tab]').forEach(x=>x.setAttribute('aria-selected','false'));
+  document.querySelectorAll('.panel').forEach(p=>p.hidden=p.id!=='p-progress');
+  const p=cur(),all=Object.entries(DB.pupils).sort((a,b)=>a[1].cls.localeCompare(b[1].cls)||a[1].name.localeCompare(b[1].name));
+  const mine=p?`<div class="phead"><h2>${esc(p.name)}'s progress</h2><span class="score">${Object.values(p.st).reduce((a,v)=>a+v.right,0)} correct of ${Object.values(p.st).reduce((a,v)=>a+v.done,0)} done</span></div>
+    <div class="lights">${STATIONS.map(s=>stationCard(p,s)).join('')}</div>`:'<div class="phead"><h2>Progress</h2></div><p style="margin:0">Choose a pupil above to see their own progress.</p>';
+  const table=all.length?`<div class="ctable-wrap"><table class="ctable"><thead><tr><th>Pupil</th><th>Class</th>${STATIONS.map(s=>`<th>${s.name}</th>`).join('')}<th>Last used</th></tr></thead><tbody>
+    ${all.map(([k,v])=>`<tr class="${k===DB.current?'me':''}"><td>${esc(v.name)}</td><td>${esc(v.cls)}</td>${STATIONS.map(s=>{const st=v.st[s.id]||{done:0,right:0},l=light(st.done,st.right);return `<td><span class="cell"><span class="lamp sm ${l.c}" role="img" aria-label="${l.w}"></span>${st.right}/${st.done}</span></td>`}).join('')}<td>${new Date(v.last).toLocaleDateString('en-SG',{day:'numeric',month:'short'})}</td></tr>`).join('')}
+    </tbody></table></div>`:'<p style="margin:0">No pupils have practised on this device yet.</p>';
+  $('#p-progress').innerHTML=`${mine}${LEGEND}
+    <div class="phead"><h2>Class view (this device)</h2><span class="score">${all.length} pupil${all.length===1?'':'s'}</span></div>
+    <p class="lword" style="margin:0">Numbers show correct / done. Results are saved only on this device.</p>${table}
+    <div class="actions" id="resetRow">${p?'<button type="button" class="btn danger" id="rsMe">Reset this pupil</button>':''}${all.length?'<button type="button" class="btn danger" id="rsAll">Clear all pupils on this device</button>':''}<button type="button" class="btn next" id="backPractice">Back to practice</button></div>`;
+  const ask=(msg,fn)=>{$('#resetRow').innerHTML=`<div class="confirm">${msg} <button type="button" class="btn danger" id="yes">Yes, clear</button><button type="button" class="btn next" id="no">Cancel</button></div>`;$('#yes').onclick=()=>{fn();saveDB();loadStages();pupilBar();showProgress()};$('#no').onclick=showProgress};
+  if($('#rsMe'))$('#rsMe').onclick=()=>ask(`Clear all of ${esc(p.name)}'s results?`,()=>{p.st={};p.stages=STAGES.map(()=>0)});
+  if($('#rsAll'))$('#rsAll').onclick=()=>ask('Clear every pupil\'s results on this device?',()=>{DB={pupils:{},current:null}});
+  $('#backPractice').onclick=()=>document.querySelector('[data-tab=solve]').click();
+}
+function loadStages(){const p=cur();const src=p&&p.stages?p.stages:STAGES.map(()=>0);for(let i=0;i<STAGES.length;i++)stageRight[i]=src[i]||0;if(window.refreshLadder)refreshLadder()}
+
+/* ---------- wiring ---------- */
+const P={convert:practice('convert','Change 12-hour ↔ 24-hour',genConvert),read:practice('read','Read the clock',genRead),
+  jump:practice('jump','Timeline jumps',genJump,{
+    top:`<div class="ladder" id="ladder" role="group" aria-label="Stages">${ladderHTML()}</div><div class="dirtoggle" role="group" aria-label="Direction">Direction: <button type="button" data-dir="1" aria-pressed="true">Count on →</button><button type="button" data-dir="-1" aria-pressed="false">← Count back</button></div>`,
+    onRight(){stageRight[stage]++;const pp=cur();if(pp){pp.stages=stageRight.slice();saveDB()}refreshLadder();
+      if(stageRight[stage]===5)return stage<STAGES.length-1?`<br><button type="button" class="btn up" data-goto="${stage+1}">Ready! Go to stage ${stage+2}: ${STAGES[stage+1].name} →</button>`:'<br><button type="button" class="btn up" data-goto="solve">Ready! Go to Solve it →</button>';
+      return stageRight[stage]<5?` <span style="font-weight:600">(${stageRight[stage]} of 5 for this stage)</span>`:''}}),
+  solve:practice('solve','Solve time problems',genSolve)};
+function refreshLadder(){$('#ladder').innerHTML=ladderHTML()}
+window.refreshLadder=refreshLadder;loadStages();pupilBar();
+function setStage(i){stage=i;refreshLadder();P.jump.next()}
+$('#ladder').addEventListener('click',e=>{const b=e.target.closest('[data-stage]');if(b)setStage(+b.dataset.stage)});
+P.jump.root.querySelectorAll('[data-dir]').forEach(b=>b.onclick=()=>{jdir=+b.dataset.dir;P.jump.root.querySelectorAll('[data-dir]').forEach(x=>x.setAttribute('aria-pressed',x===b));P.jump.next()});
+$('#jump-fb').addEventListener('click',e=>{const b=e.target.closest('[data-goto]');if(!b)return;
+  if(b.dataset.goto==='solve')document.querySelector('[data-tab=solve]').click();else setStage(+b.dataset.goto)});
+document.querySelectorAll('[role=tab]').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('[role=tab]').forEach(x=>x.setAttribute('aria-selected',x===t));
+  document.querySelectorAll('.panel').forEach(p=>p.hidden=p.id!=='p-'+t.dataset.tab);
+  try{speechSynthesis.cancel()}catch(e){}
+});
+function setLevel(l){level=l;$('#lv1').setAttribute('aria-pressed',l===1);$('#lv2').setAttribute('aria-pressed',l===2);
+  $('#levelnote').textContent=l===1?'Level 1: times in 5-minute steps, all in 24-hour clock.':'Level 2: any minute, longer times, and a mix of 12-hour and 24-hour.';
+  Object.values(P).forEach(p=>p.next())}
+$('#lv1').onclick=()=>setLevel(1);$('#lv2').onclick=()=>setLevel(2);
+drawExplore();
+</script>
