@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Division Detective HQ — Long Division</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap');
+
+:root{
+  --cream:#FBF6EC;
+  --cream-2:#F3EBDA;
+  --plum:#5B3A5C;
+  --plum-2:#7A5480;
+  --amber:#E3A340;
+  --amber-dark:#C97F1E;
+  --ink:#3A2E3F;
+  --good:#5E9C76;
+  --good-bg:#E4F3E9;
+  --bad:#D9695F;
+  --bad-bg:#FBE7E5;
+  --paper:#FFFDF8;
+  --line:#D8CBB0;
+}
+
+*{box-sizing:border-box;}
+body{
+  margin:0;
+  font-family:'Nunito',sans-serif;
+  background:var(--cream);
+  color:var(--ink);
+  background-image:
+    radial-gradient(circle at 8% 12%, rgba(227,163,64,0.10) 0, transparent 40%),
+    radial-gradient(circle at 92% 85%, rgba(91,58,92,0.08) 0, transparent 45%);
+  min-height:100vh;
+  padding-bottom:40px;
+}
+
+.wrap{max-width:880px;margin:0 auto;padding:20px 18px 10px;}
+
+header{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin-bottom:6px;
+}
+.mascot{
+  font-size:44px;
+  line-height:1;
+  filter:drop-shadow(0 3px 3px rgba(0,0,0,0.12));
+}
+h1{
+  font-family:'Fredoka',sans-serif;
+  font-size:28px;
+  font-weight:600;
+  color:var(--plum);
+  margin:0;
+}
+.subtitle{
+  margin:2px 0 0;
+  color:var(--plum-2);
+  font-size:14.5px;
+  font-weight:600;
+}
+
+.tabs{
+  display:flex;
+  gap:8px;
+  margin:22px 0 18px;
+  border-bottom:2px solid var(--line);
+}
+.tab-btn{
+  font-family:'Fredoka',sans-serif;
+  font-size:15px;
+  font-weight:600;
+  background:none;
+  border:none;
+  padding:10px 6px 12px;
+  color:var(--plum-2);
+  cursor:pointer;
+  position:relative;
+  opacity:0.6;
+}
+.tab-btn.active{opacity:1;color:var(--plum);}
+.tab-btn.active::after{
+  content:'';
+  position:absolute;
+  bottom:-2px;left:0;right:0;
+  height:3px;
+  background:var(--amber);
+  border-radius:3px 3px 0 0;
+}
+
+.panel{display:none;}
+.panel.active{display:block;}
+
+.card{
+  background:var(--paper);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:20px;
+  box-shadow:0 3px 0 rgba(91,58,92,0.06);
+  margin-bottom:18px;
+}
+
+.card h2{
+  font-family:'Fredoka',sans-serif;
+  font-size:17px;
+  color:var(--plum);
+  margin:0 0 12px;
+}
+
+/* controls */
+.control-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px 18px;
+  align-items:flex-end;
+  margin-bottom:14px;
+}
+.control-group{display:flex;flex-direction:column;gap:4px;}
+.control-group label{
+  font-size:12.5px;
+  font-weight:800;
+  color:var(--plum-2);
+  text-transform:none;
+}
+.seg{
+  display:flex;
+  background:var(--cream-2);
+  border-radius:10px;
+  padding:3px;
+  gap:2px;
+}
+.seg button{
+  font-family:'Nunito',sans-serif;
+  font-weight:800;
+  font-size:13.5px;
+  border:none;
+  background:none;
+  padding:7px 12px;
+  border-radius:8px;
+  color:var(--plum-2);
+  cursor:pointer;
+}
+.seg button.on{background:var(--plum);color:#fff;}
+
+select, input[type=number], input[type=text].numfield{
+  font-family:'Nunito',sans-serif;
+  font-weight:700;
+  font-size:14px;
+  padding:8px 10px;
+  border-radius:9px;
+  border:2px solid var(--line);
+  background:#fff;
+  color:var(--ink);
+}
+
+.btn{
+  font-family:'Fredoka',sans-serif;
+  font-weight:600;
+  font-size:14.5px;
+  border:none;
+  border-radius:11px;
+  padding:10px 18px;
+  cursor:pointer;
+  background:var(--amber);
+  color:#4a2e0c;
+  box-shadow:0 3px 0 var(--amber-dark);
+  transition:transform .05s;
+}
+.btn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--amber-dark);}
+.btn.secondary{
+  background:var(--cream-2);
+  color:var(--plum);
+  box-shadow:0 3px 0 var(--line);
+}
+.btn.secondary:active{box-shadow:0 1px 0 var(--line);}
+.btn:disabled{opacity:0.45;cursor:default;box-shadow:none;transform:none;}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+
+/* division board */
+.board-scroll{overflow-x:auto;padding:6px 2px 10px;}
+.board{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  font-family:'Fredoka',sans-serif;
+  min-width:max-content;
+  padding:10px 4px;
+}
+.divisor-box{
+  font-size:26px;
+  font-weight:600;
+  color:var(--plum);
+  padding-top:44px;
+}
+.bracket-col{display:flex;flex-direction:column;}
+.row{
+  display:grid;
+  column-gap:0;
+  height:38px;
+  align-items:center;
+  position:relative;
+}
+.cell{
+  width:36px;
+  text-align:center;
+  font-size:22px;
+  font-weight:600;
+  color:var(--ink);
+}
+.quotient-row .cell{color:var(--amber-dark);font-weight:700;}
+.quotient-row .cell.blank{visibility:hidden;}
+.bracket-box{
+  border-left:3px solid var(--ink);
+  border-top:3px solid var(--ink);
+  padding-top:2px;
+  padding-left:2px;
+  margin-top:2px;
+}
+.work-row{position:relative;}
+.work-row.has-minus::before{
+  content:'−';
+  position:absolute;
+  left:-20px;
+  top:0;
+  width:16px;
+  text-align:center;
+  font-size:20px;
+  font-weight:700;
+  color:var(--plum);
+}
+.work-row.bar{border-top:2.5px solid var(--ink);margin-top:-3px;height:20px;}
+.remainder-final{
+  font-size:15px;
+  font-weight:800;
+  color:var(--plum);
+  margin-top:6px;
+  padding-left:2px;
+}
+
+.row input{
+  width:30px;
+  height:30px;
+  text-align:center;
+  font-family:'Fredoka',sans-serif;
+  font-size:19px;
+  font-weight:700;
+  border:2px solid var(--plum-2);
+  border-radius:7px;
+  color:var(--ink);
+  background:#fff;
+  padding:0;
+}
+.row input:focus{outline:none;border-color:var(--amber-dark);}
+.row input.correct{background:var(--good-bg);border-color:var(--good);color:var(--good);}
+.row input.wrong{background:var(--bad-bg);border-color:var(--bad);animation:shake .3s;}
+.row input:disabled{opacity:1;background:var(--good-bg);border-color:var(--good);color:var(--good);}
+
+@keyframes shake{
+  0%,100%{transform:translateX(0);}
+  25%{transform:translateX(-4px);}
+  75%{transform:translateX(4px);}
+}
+
+.active-hint{
+  outline:3px solid rgba(227,163,64,0.55);
+  outline-offset:2px;
+  border-radius:8px;
+}
+
+/* caption bubble for teach mode */
+.caption{
+  background:var(--cream-2);
+  border:2px dashed var(--plum-2);
+  border-radius:14px;
+  padding:12px 16px;
+  font-size:14.5px;
+  font-weight:700;
+  color:var(--plum);
+  min-height:24px;
+  line-height:1.45;
+}
+.caption b{color:var(--amber-dark);}
+
+.playbar{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;align-items:center;}
+.step-count{font-size:13px;font-weight:800;color:var(--plum-2);margin-left:auto;}
+
+/* practice feedback */
+.status-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;}
+.case-chip{
+  font-family:'Fredoka',sans-serif;
+  font-size:14px;
+  font-weight:600;
+  background:var(--plum);
+  color:#fff;
+  padding:5px 13px;
+  border-radius:20px;
+}
+.streak{font-size:13.5px;font-weight:800;color:var(--amber-dark);}
+
+.feedback-msg{
+  margin-top:12px;
+  font-size:14.5px;
+  font-weight:800;
+  min-height:22px;
+}
+.feedback-msg.good{color:var(--good);}
+.feedback-msg.bad{color:var(--bad);}
+
+.celebrate{
+  text-align:center;
+  padding:18px 10px 6px;
+}
+.celebrate .big{font-size:40px;}
+.celebrate h3{font-family:'Fredoka',sans-serif;color:var(--plum);margin:6px 0 2px;}
+.celebrate p{color:var(--plum-2);font-weight:700;margin:0;}
+
+.hint-box{
+  font-size:13.5px;
+  font-weight:700;
+  color:var(--plum-2);
+  background:var(--cream-2);
+  border-radius:10px;
+  padding:9px 12px;
+  margin-top:10px;
+  display:none;
+}
+.hint-box.show{display:block;}
+
+footer.note{
+  text-align:center;
+  font-size:12px;
+  color:var(--plum-2);
+  opacity:0.75;
+  margin-top:6px;
+}
+
+@media (max-width:480px){
+  h1{font-size:22px;}
+  .mascot{font-size:36px;}
+  .cell{width:30px;font-size:19px;}
+  .row input{width:26px;height:26px;font-size:16px;}
+  .divisor-box{font-size:22px;padding-top:38px;}
+}
+
+/* ---------- animated times-table helper ---------- */
+[hidden]{display:none !important;}
+.board-layout{display:flex;gap:18px;align-items:flex-start;}
+.board-layout .board-scroll{flex:1 1 auto;min-width:0;}
+.tt-panel{
+  margin-top:12px;
+  flex:0 0 210px;
+  background:var(--cream-2);
+  border:2px dashed var(--plum-2);
+  border-radius:14px;
+  padding:12px 12px 14px;
+}
+.tt-title{
+  font-family:'Fredoka',sans-serif;
+  font-size:17px;
+  font-weight:600;
+  color:var(--plum);
+  text-align:center;
+  margin-bottom:6px;
+}
+.tt-chip{
+  height:76px;
+  overflow:hidden;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  font-size:13px;
+  font-weight:700;
+  line-height:1.35;
+  color:var(--plum);
+  margin-bottom:8px;
+}
+.tt-list{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:4px;}
+.tt-list li{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  font-family:'Fredoka',sans-serif;
+  font-size:17px;
+  font-weight:600;
+  padding:3px 10px;
+  border-radius:9px;
+  border:2px solid transparent;
+  background:var(--paper);
+  color:var(--ink);
+  transition:background .2s, border-color .2s, transform .2s;
+}
+.tt-list li.tt-on{background:var(--good-bg);border-color:var(--good);color:#2F6B48;}
+.tt-list li.tt-now{transform:scale(1.06);}
+.tt-list li.tt-over{background:var(--bad-bg);border-color:var(--bad);color:#A63F36;}
+.tt-list li.tt-past{background:var(--good-bg);color:#2F6B48;opacity:.65;}
+.tt-list li.tt-win{
+  background:var(--amber);
+  border-color:var(--amber-dark);
+  color:#4a2e0c;
+  transform:scale(1.06);
+  box-shadow:0 2px 0 var(--amber-dark);
+}
+.tt-replay{width:100%;}
+@media (max-width:640px){
+  .board-layout{flex-direction:column;}
+  .tt-panel{flex:none;width:100%;}
+  .tt-list{grid-template-columns:1fr 1fr;grid-auto-flow:column;grid-template-rows:repeat(5,auto);column-gap:8px;}
+}
+@media (prefers-reduced-motion: reduce){
+  .tt-list li{transition:none;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="mascot">🕵️‍♀️🦉</div>
+    <div>
+      <h1>Division Detective HQ</h1>
+      <p class="subtitle">Crack the case: long division, 3–4 digit ÷ 1 digit</p>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="teach">How It Works</button>
+    <button class="tab-btn" data-tab="practice">Solve Cases</button>
+  </div>
+
+  <!-- TEACH PANEL -->
+  <div class="panel active" id="panel-teach">
+    <div class="card">
+      <h2>Set up a demo problem</h2>
+      <div class="control-row">
+        <div class="control-group">
+          <label>Dividend (3–4 digits)</label>
+          <input type="text" class="numfield" id="teach-dividend" maxlength="4" value="4331" inputmode="numeric">
+        </div>
+        <div class="control-group">
+          <label>Divisor</label>
+          <select id="teach-divisor"></select>
+        </div>
+        <button class="btn" id="teach-start">Start demo</button>
+      </div>
+      <p style="margin:0;font-size:13px;color:var(--plum-2);font-weight:700;">Type any dividend and divisor to demonstrate a specific case on the board.</p>
+    </div>
+
+    <div class="card">
+      <h2>Watch the case unfold</h2>
+      <div class="caption" id="teach-caption">Press "Start demo" to begin, then use Next to walk through each clue.</div>
+      <div class="board-layout">
+        <div class="board-scroll"><div class="board" id="teach-board"></div></div>
+        <aside class="tt-panel" id="teach-tt" hidden aria-label="Times table helper"></aside>
+      </div>
+      <div class="playbar">
+        <button class="btn secondary" id="teach-prev">◀ Back</button>
+        <button class="btn secondary" id="teach-play">▶ Play</button>
+        <button class="btn" id="teach-next">Next ▶</button>
+        <span class="step-count" id="teach-count"></span>
+      </div>
+    </div>
+
+    <div class="card" style="background:var(--cream-2);border:none;">
+      <h2 style="margin-bottom:6px;">The detective's method</h2>
+      <p style="margin:0;font-size:13.5px;font-weight:700;color:var(--plum);line-height:1.6;">
+        Work left to right, one digit at a time: <b>Divide</b> — how many times does the divisor fit?
+        <b>Multiply</b> — quotient digit × divisor. <b>Subtract</b> — find what's left over.
+        <b>Bring down</b> — drag the next digit down to join the leftover, and repeat.
+      </p>
+    </div>
+  </div>
+
+  <!-- PRACTICE PANEL -->
+  <div class="panel" id="panel-practice">
+    <div class="card">
+      <h2>Case settings</h2>
+      <div class="control-row">
+        <div class="control-group">
+          <label>Dividend size</label>
+          <div class="seg" id="seg-digits">
+            <button data-val="3" class="on">3-digit</button>
+            <button data-val="4">4-digit</button>
+            <button data-val="mix">Mixed</button>
+          </div>
+        </div>
+        <div class="control-group">
+          <label>Divisor</label>
+          <select id="practice-divisor">
+            <option value="0">Random 2–9</option>
+            <option>2</option><option>3</option><option>4</option><option>5</option>
+            <option>6</option><option>7</option><option>8</option><option>9</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label>Remainders</label>
+          <div class="seg" id="seg-remainder">
+            <button data-val="yes" class="on">Allowed</button>
+            <button data-val="no">Whole only</button>
+          </div>
+        </div>
+        <button class="btn" id="new-case-btn">New case 🔍</button>
+      </div>
+      <div class="status-row">
+        <span class="case-chip" id="case-chip">Case #1</span>
+        <span class="streak" id="streak-chip">Solved this session: 0</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="board-layout">
+        <div class="board-scroll"><div class="board" id="practice-board"></div></div>
+        <aside class="tt-panel" id="practice-tt" hidden aria-label="Times table helper"></aside>
+      </div>
+      <div class="hint-box" id="hint-box"></div>
+      <div class="feedback-msg" id="feedback-msg"></div>
+      <div class="btn-row" style="margin-top:8px;">
+        <button class="btn secondary" id="hint-btn">💡 Hint</button>
+        <button class="btn secondary" id="reveal-btn">Show this step</button>
+      </div>
+      <div class="celebrate" id="celebrate" style="display:none;">
+        <div class="big">🎉🕵️‍♀️</div>
+        <h3>Case closed!</h3>
+        <p id="celebrate-detail"></p>
+      </div>
+    </div>
+  </div>
+
+  <footer class="note">Division Detective HQ · part of the P3/P4 Maths toolkit</footer>
+</div>
+
+<script>
+/* ---------- core division logic ---------- */
+function computeSteps(dividendStr, divisor){
+  const digits = dividendStr.split('').map(Number);
+  const N = digits.length;
+  let remainder = 0;
+  const steps = [];
+  for(let i=0;i<N;i++){
+    const current = remainder*10 + digits[i];
+    const q = Math.floor(current/divisor);
+    const product = q*divisor;
+    const newRemainder = current - product;
+    steps.push({i, current, q, product, remainder:newRemainder});
+    remainder = newRemainder;
+  }
+  let firstSig = steps.findIndex(s=>s.q>0);
+  if(firstSig===-1) firstSig = N-1;
+  return {digits, N, steps, finalRemainder: remainder, firstSig, divisor, dividendStr};
+}
+
+function colOf(pos){ return pos+1; } // 1-indexed grid column for a digit position
+
+/* ---------- shared board rendering (static / progressive) ---------- */
+// revealUpTo: index into steps[] up to and including which step's product/remainder rows are shown.
+// -1 means only quotient row (blank) + dividend row shown.
+function renderBoardHTML(data, revealUpTo, opts){
+  opts = opts || {};
+  const {digits, N, steps, finalRemainder, firstSig, divisor} = data;
+
+  let html = '';
+  html += `<div class="divisor-box">${divisor}</div>`;
+  html += `<div class="bracket-col">`;
+
+  // quotient row
+  html += `<div class="row quotient-row" style="grid-template-columns:repeat(${N},36px);">`;
+  for(let p=0;p<N;p++){
+    if(p<firstSig){
+      html += `<div class="cell blank">0</div>`;
+    } else if(p<=revealUpTo){
+      html += `<div class="cell">${steps[p].q}</div>`;
+    } else {
+      html += `<div class="cell blank">0</div>`;
+    }
+  }
+  html += `</div>`;
+
+  // bracket box: dividend row + work rows
+  html += `<div class="bracket-box">`;
+  html += `<div class="row" style="grid-template-columns:repeat(${N},36px);">`;
+  for(let p=0;p<N;p++){
+    html += `<div class="cell">${digits[p]}</div>`;
+  }
+  html += `</div>`;
+
+  for(let i=firstSig;i<N;i++){
+    if(i>revealUpTo) break;
+    const s = steps[i];
+    const pStr = String(s.product);
+    const pWidth = pStr.length;
+    const pStart = colOf(i) - pWidth + 1;
+    const pOffset = (pStart-1)*36;
+    html += `<div class="row work-row has-minus" style="grid-template-columns:repeat(${pWidth},36px);width:${pWidth*36}px;margin-left:${pOffset}px;">`;
+    for(let k=0;k<pWidth;k++){
+      html += `<div class="cell">${pStr[k]}</div>`;
+    }
+    html += `</div>`;
+    // bar
+    html += `<div class="row work-row bar" style="width:${pWidth*36}px;margin-left:${pOffset}px;"></div>`;
+
+    if(i<N-1){
+      const nextRemVal = s.remainder;
+      const nextDigit = digits[i+1];
+      const bdWidth = nextRemVal===0 ? 1 : 2;
+      const bdStart = colOf(i+1) - bdWidth + 1;
+      const bdOffset = (bdStart-1)*36;
+      const bdDigits = nextRemVal===0 ? String(nextDigit) : String(nextRemVal)+String(nextDigit);
+      html += `<div class="row work-row" style="grid-template-columns:repeat(${bdWidth},36px);width:${bdWidth*36}px;margin-left:${bdOffset}px;">`;
+      for(let k=0;k<bdWidth;k++){
+        html += `<div class="cell">${bdDigits[k]}</div>`;
+      }
+      html += `</div>`;
+    } else {
+      html += `<div class="remainder-final">Remainder = ${finalRemainder}</div>`;
+    }
+  }
+
+  html += `</div></div>`; // close bracket-box, bracket-col
+  return html;
+}
+
+/* =========================================================
+   TIMES TABLE HELPER (animated)
+   Appears beside the working whenever the divisor is in TT_DIVISORS.
+   To show it for other divisors too, add them here, e.g. [6, 7, 8]. Currently all of 2-9 are on.
+   ========================================================= */
+const TT_DIVISORS = [2, 3, 4, 5, 6, 7, 8, 9];
+const TT_STEP_MS = 430;
+const TT_REDUCED = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+function createTimesTable(root){
+  let divisor = 0;
+  let timers = [];
+  let rows = [];
+  root.innerHTML =
+    '<div class="tt-title"></div>' +
+    '<div class="tt-chip" aria-live="polite"></div>' +
+    '<ul class="tt-list"></ul>' +
+    '<button class="btn secondary tt-replay" type="button">▶ Count up</button>';
+  const titleEl = root.querySelector('.tt-title');
+  const chipEl = root.querySelector('.tt-chip');
+  const listEl = root.querySelector('.tt-list');
+  const replayBtn = root.querySelector('.tt-replay');
+
+  function clearTimers(){ timers.forEach(clearTimeout); timers = []; }
+  function resetRows(){ rows.forEach(li => { li.className = ''; }); }
+  function setChip(html){ chipEl.innerHTML = '<div>' + html + '</div>'; }
+
+  function setDivisor(d){
+    if(d === divisor) return;
+    clearTimers();
+    divisor = d;
+    titleEl.textContent = d + ' times table';
+    listEl.innerHTML = '';
+    rows = [];
+    for(let n = 1; n <= 10; n++){
+      const li = document.createElement('li');
+      li.innerHTML = '<span>' + n + ' × ' + d + '</span><span>= ' + (n*d) + '</span>';
+      listEl.appendChild(li);
+      rows.push(li);
+    }
+    replayBtn.textContent = '▶ Count up in ' + d + 's';
+  }
+
+  // Final state: rows below the answer faded, the answer row highlighted, the next row marked "too big".
+  function settle(target){
+    resetRows();
+    const q = Math.floor(target / divisor);
+    for(let n = 1; n < q; n++) rows[n-1].classList.add('tt-past');
+    if(q >= 1) rows[q-1].classList.add('tt-win');
+    if(q < 10) rows[q].classList.add('tt-over');
+    if(q === 0){
+      setChip('<b>' + divisor + '</b> is bigger than <b>' + target + '</b>, so it doesn’t fit — the digit is <b>0</b>.');
+    } else {
+      setChip('<b>' + q + '</b> × ' + divisor + ' = <b>' + (q*divisor) + '</b> is the biggest that fits into ' + target + '.<br>Quotient digit: <b>' + q + '</b>');
+    }
+  }
+
+  // Animated climb: light up 1×, 2×, 3×… until a multiple goes over the target, then settle on the answer.
+  function play(target){
+    clearTimers();
+    resetRows();
+    const q = Math.floor(target / divisor);
+    const last = Math.min(q + 1, 10);
+    if(TT_REDUCED){ settle(target); return; }
+    setChip('Counting up in ' + divisor + 's…');
+    for(let n = 1; n <= last; n++){
+      timers.push(setTimeout(function(){
+        rows.forEach(li => li.classList.remove('tt-now'));
+        const li = rows[n-1];
+        const val = n * divisor;
+        if(val <= target){
+          li.classList.add('tt-on', 'tt-now');
+          setChip(n + ' × ' + divisor + ' = <b>' + val + '</b> ✓ fits into ' + target);
+        } else {
+          li.classList.add('tt-over');
+          setChip(n + ' × ' + divisor + ' = <b>' + val + '</b> ✗ too big for ' + target + '!');
+        }
+      }, (n-1) * TT_STEP_MS));
+    }
+    timers.push(setTimeout(function(){ settle(target); }, last * TT_STEP_MS + 250));
+  }
+
+  return {
+    replayBtn: replayBtn,
+    setDivisor: setDivisor,
+    play: play,
+    duration: function(target){
+      return TT_REDUCED ? 0 : Math.min(Math.floor(target / divisor) + 1, 10) * TT_STEP_MS + 250;
+    },
+    idle: function(chipHtml){ clearTimers(); resetRows(); setChip(chipHtml || ''); },
+    showResult: function(target, chipHtml){ clearTimers(); settle(target); if(chipHtml) setChip(chipHtml); },
+    show: function(){ root.hidden = false; },
+    hide: function(){ clearTimers(); root.hidden = true; }
+  };
+}
+
+const ttTeach = createTimesTable(document.getElementById('teach-tt'));
+const ttPractice = createTimesTable(document.getElementById('practice-tt'));
+
+/* =========================================================
+   TEACH MODE
+   ========================================================= */
+const teachDivisorSel = document.getElementById('teach-divisor');
+for(let d=2; d<=9; d++){
+  const o = document.createElement('option'); o.value=d; o.textContent=d;
+  if(d===6) o.selected = true;
+  teachDivisorSel.appendChild(o);
+}
+
+let teachData = null;
+let teachStepIdx = -1; // -1 = nothing revealed yet
+let teachTimer = null;
+
+function narrationFor(data, idx){
+  const {steps, digits, firstSig, N, finalRemainder} = data;
+  if(idx===-1){
+    const lead = firstSig===0 ? String(digits[0]) : String(digits[0])+String(digits[1]);
+    return `We look at the dividend from the left. Our divisor is <b>${data.divisor}</b>. Click Next to find the first clue.`;
+  }
+  const s = steps[idx];
+  const isLast = idx===N-1;
+  if(idx < firstSig){
+    return `<b>Divide:</b> can ${data.divisor} go into ${s.current}? No — ${data.divisor} is bigger than ${s.current}, so we take the next digit too and look at <b>${steps[idx+1].current}</b> instead.`;
+  }
+  let msg = `<b>Divide:</b> ${s.current} ÷ ${data.divisor} = ${s.q}, so we write ${s.q} on top. `;
+  msg += `<b>Multiply:</b> ${s.q} × ${data.divisor} = ${s.product}. `;
+  msg += `<b>Subtract:</b> ${s.current} − ${s.product} = ${s.remainder}. `;
+  if(!isLast){
+    msg += `<b>Bring down</b> the next digit (${digits[idx+1]}) to make ${s.remainder===0?digits[idx+1]:String(s.remainder)+String(digits[idx+1])}.`;
+  } else {
+    msg += `No digits left to bring down — the remainder is <b>${finalRemainder}</b>. Case closed!`;
+  }
+  return msg;
+}
+
+function renderTeach(){
+  document.getElementById('teach-board').innerHTML = renderBoardHTML(teachData, teachStepIdx);
+  document.getElementById('teach-caption').innerHTML = narrationFor(teachData, teachStepIdx);
+  const total = teachData.N - teachData.firstSig;
+  const done = Math.max(0, teachStepIdx - teachData.firstSig + 1);
+  document.getElementById('teach-count').textContent = teachStepIdx===-1 ? `Ready — ${total} clue${total>1?'s':''} to solve` : `Clue ${done} of ${total}`;
+  document.getElementById('teach-prev').disabled = teachStepIdx===-1;
+  document.getElementById('teach-next').disabled = teachStepIdx>=teachData.N-1;
+  refreshTeachTT();
+  if(teachStepIdx>=teachData.N-1) stopTeachPlay();
+}
+
+function refreshTeachTT(){
+  if(!teachData || TT_DIVISORS.indexOf(teachData.divisor) === -1){ ttTeach.hide(); return; }
+  ttTeach.setDivisor(teachData.divisor);
+  ttTeach.show();
+  if(teachStepIdx === -1){
+    ttTeach.idle('The ' + teachData.divisor + ' times table will help us find each quotient digit.');
+    ttTeach.replayBtn.hidden = true;
+    return;
+  }
+  ttTeach.replayBtn.hidden = false;
+  ttTeach.play(teachData.steps[teachStepIdx].current);
+}
+ttTeach.replayBtn.addEventListener('click', ()=>{
+  if(teachData && teachStepIdx >= 0) ttTeach.play(teachData.steps[teachStepIdx].current);
+});
+
+function startTeachDemo(){
+  let raw = document.getElementById('teach-dividend').value.trim();
+  raw = raw.replace(/[^0-9]/g,'');
+  if(raw.length<3) raw = raw.padStart(3,'0');
+  if(raw.length>4) raw = raw.slice(0,4);
+  if(raw==='0'.repeat(raw.length)) raw = '431';
+  document.getElementById('teach-dividend').value = raw;
+  const divisor = parseInt(teachDivisorSel.value,10);
+  teachData = computeSteps(raw, divisor);
+  teachStepIdx = -1;
+  renderTeach();
+}
+
+function stopTeachPlay(){
+  clearTimeout(teachTimer);
+  teachTimer = null;
+  document.getElementById('teach-play').textContent = '▶ Play';
+}
+
+document.getElementById('teach-start').addEventListener('click', ()=>{ stopTeachPlay(); startTeachDemo(); });
+document.getElementById('teach-next').addEventListener('click', ()=>{
+  if(!teachData) return startTeachDemo();
+  if(teachStepIdx < teachData.N-1){ teachStepIdx++; renderTeach(); }
+});
+document.getElementById('teach-prev').addEventListener('click', ()=>{
+  if(!teachData) return;
+  if(teachStepIdx > -1){ teachStepIdx--; renderTeach(); }
+});
+document.getElementById('teach-play').addEventListener('click', ()=>{
+  if(!teachData) startTeachDemo();
+  if(teachTimer){ stopTeachPlay(); return; }
+  document.getElementById('teach-play').textContent = '⏸ Pause';
+  scheduleTeachAdvance();
+});
+
+// Auto-play waits long enough for the times-table animation to finish before moving on.
+function scheduleTeachAdvance(){
+  let delay = 2600;
+  if(teachStepIdx >= 0 && TT_DIVISORS.indexOf(teachData.divisor) !== -1){
+    delay = Math.max(delay, ttTeach.duration(teachData.steps[teachStepIdx].current) + 1500);
+  }
+  teachTimer = setTimeout(()=>{
+    if(teachStepIdx < teachData.N-1){ teachStepIdx++; renderTeach(); if(teachTimer !== null) scheduleTeachAdvance(); }
+    else { stopTeachPlay(); }
+  }, delay);
+}
+
+startTeachDemo();
+
+/* =========================================================
+   PRACTICE MODE
+   ========================================================= */
+let digitsMode = '3';
+let remainderMode = 'yes';
+let fixedDivisor = 0; // 0 = random
+
+document.getElementById('seg-digits').addEventListener('click', e=>{
+  if(e.target.tagName!=='BUTTON') return;
+  [...e.currentTarget.children].forEach(b=>b.classList.remove('on'));
+  e.target.classList.add('on');
+  digitsMode = e.target.dataset.val;
+});
+document.getElementById('seg-remainder').addEventListener('click', e=>{
+  if(e.target.tagName!=='BUTTON') return;
+  [...e.currentTarget.children].forEach(b=>b.classList.remove('on'));
+  e.target.classList.add('on');
+  remainderMode = e.target.dataset.val;
+});
+document.getElementById('practice-divisor').addEventListener('change', e=>{
+  fixedDivisor = parseInt(e.target.value,10);
+});
+
+let caseNum = 0;
+let solvedCount = 0;
+let pData = null;
+let pStepIdx = 0;      // which step (index into steps[]) we're working on
+let pStage = 'quotient'; // 'quotient' | 'product' | 'remainder' | 'done'
+let wrongAttempts = 0;
+
+function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+
+function generateProblem(){
+  let digitLen = digitsMode;
+  if(digitLen==='mix') digitLen = Math.random()<0.5 ? 3 : 4;
+  digitLen = parseInt(digitLen,10);
+  const divisor = fixedDivisor>0 ? fixedDivisor : randInt(2,9);
+  const min = digitLen===3 ? 100 : 1000;
+  const max = digitLen===3 ? 999 : 9999;
+  let dividend;
+  if(remainderMode==='no'){
+    const qMin = Math.ceil(min/divisor);
+    const qMax = Math.floor(max/divisor);
+    const q = randInt(qMin,qMax);
+    dividend = q*divisor;
+  } else {
+    dividend = randInt(min,max);
+  }
+  return computeSteps(String(dividend), divisor);
+}
+
+function newCase(){
+  caseNum++;
+  pData = generateProblem();
+  pStepIdx = pData.firstSig;
+  pStage = 'quotient';
+  wrongAttempts = 0;
+  document.getElementById('case-chip').textContent = `Case #${caseNum}`;
+  document.getElementById('celebrate').style.display = 'none';
+  document.getElementById('feedback-msg').textContent = '';
+  document.getElementById('feedback-msg').className = 'feedback-msg';
+  document.getElementById('hint-box').classList.remove('show');
+  renderPracticeBoard();
+}
+
+function currentPrompt(){
+  const s = pData.steps[pStepIdx];
+  if(pStage==='quotient') return `How many times does ${pData.divisor} go into ${s.current}?`;
+  if(pStage==='product') return `What is ${s.q} × ${pData.divisor}?`;
+  if(pStage==='remainder') return `${s.current} − ${s.product} = ?`;
+  if(pStage==='bringdown'){
+    const nextDigit = pData.digits[pStepIdx+1];
+    return s.remainder===0
+      ? `Bring down the next digit — what digit is it?`
+      : `Bring down the next digit and place it next to the ${s.remainder}. What digit is it?`;
+  }
+  return '';
+}
+
+function hintFor(){
+  const s = pData.steps[pStepIdx];
+  if(pStage==='quotient') return `Try counting up in ${pData.divisor}s until you get close to ${s.current} without going over.`;
+  if(pStage==='product') return `${s.q} × ${pData.divisor} — build it up: ${Array.from({length:s.q},(_,k)=>pData.divisor).join(' + ')||0}.`;
+  if(pStage==='remainder') return `Take ${s.product} away from ${s.current}.`;
+  if(pStage==='bringdown'){
+    const nextDigit = pData.digits[pStepIdx+1];
+    return `Look at the dividend — the very next digit after the one you just used is what comes down.`;
+  }
+  return '';
+}
+
+function renderPracticeBoard(){
+  // reveal up to pStepIdx-1 fully; pStepIdx itself is "in progress"
+  const revealUpTo = pStepIdx - 1;
+  document.getElementById('practice-board').innerHTML = renderBoardHTML(pData, revealUpTo);
+  injectActiveInputs();
+  document.getElementById('feedback-msg').textContent = pStage==='done' ? '' : currentPrompt();
+  document.getElementById('feedback-msg').className = 'feedback-msg';
+  document.getElementById('hint-box').classList.remove('show');
+  refreshPracticeTT();
+}
+
+function refreshPracticeTT(){
+  if(!pData || TT_DIVISORS.indexOf(pData.divisor) === -1){ ttPractice.hide(); return; }
+  const d = pData.divisor;
+  const s = pData.steps[Math.min(pStepIdx, pData.N-1)];
+  ttPractice.setDivisor(d);
+  ttPractice.show();
+  ttPractice.replayBtn.hidden = (pStage !== 'quotient');
+  if(pStage === 'quotient'){
+    ttPractice.idle('How many <b>' + d + '</b>s fit into <b>' + s.current + '</b>?<br>Press <b>Count up</b> to watch.');
+  } else if(pStage === 'product'){
+    ttPractice.showResult(s.current, s.q > 0
+      ? 'Find <b>' + s.q + ' × ' + d + '</b> in the table.'
+      : d + ' doesn\u2019t fit, so <b>0 × ' + d + ' = 0</b>.');
+  } else if(pStage === 'remainder'){
+    ttPractice.showResult(s.current, 'Subtract to find what\u2019s left over.');
+  } else if(pStage === 'bringdown'){
+    ttPractice.idle('Bring down the next digit.');
+  } else {
+    ttPractice.idle('Case closed! \ud83c\udf89');
+  }
+}
+
+// Play the climb for the current quotient question, then hand focus back to the answer box.
+function playPracticeTT(){
+  if(!pData || pStage !== 'quotient' || TT_DIVISORS.indexOf(pData.divisor) === -1) return;
+  ttPractice.play(pData.steps[pStepIdx].current);
+  const el = document.getElementById('input-quotient');
+  if(el && !el.disabled) el.focus();
+}
+ttPractice.replayBtn.addEventListener('click', playPracticeTT);
+
+// After rendering the static board up to revealUpTo, we append the in-progress step's
+// quotient cell (as an input) and, depending on stage, product/remainder inputs.
+function injectActiveInputs(){
+  if(pStage==='done') return;
+  const {N, firstSig, steps, digits} = pData;
+  const board = document.getElementById('practice-board');
+  const bracketCol = board.querySelector('.bracket-col');
+  const quotientRow = bracketCol.querySelector('.quotient-row');
+  const bracketBox = bracketCol.querySelector('.bracket-box');
+
+  const s = steps[pStepIdx];
+
+  // quotient input cell (replace the blank cell at this position)
+  const qCellIndex = pStepIdx; // 0-indexed position among all N cells
+  const qCell = quotientRow.children[qCellIndex];
+  qCell.classList.remove('blank');
+  qCell.innerHTML = `<input type="text" inputmode="numeric" maxlength="1" id="input-quotient">`;
+
+  if(pStage==='quotient'){
+    setTimeout(()=>document.getElementById('input-quotient').focus(),10);
+    bindDigitInput('input-quotient', s.q, ()=>{
+      pStage='product'; wrongAttempts=0; renderPracticeBoard();
+    });
+    return;
+  }
+
+  // quotient already correct -> lock it visually
+  const qInput = document.getElementById('input-quotient');
+  qInput.value = s.q; qInput.disabled = true;
+
+  // product row (as input(s))
+  const pStr = String(s.product);
+  const pWidth = pStr.length;
+  const pStart = colOf(pStepIdx) - pWidth + 1;
+  const prodRow = document.createElement('div');
+  const pOffset = (pStart-1)*36;
+  prodRow.className = 'row work-row has-minus';
+  prodRow.style.width = `${pWidth*36}px`;
+  prodRow.style.marginLeft = `${pOffset}px`;
+  if(pStage==='product'){
+    prodRow.style.display = 'flex';
+    prodRow.style.alignItems = 'center';
+    prodRow.style.justifyContent = 'center';
+    prodRow.innerHTML = `<input type="text" inputmode="numeric" maxlength="2" id="input-product" style="width:${pWidth*24+10}px;">`;
+  } else {
+    prodRow.style.gridTemplateColumns = `repeat(${pWidth},36px)`;
+    for(let k=0;k<pWidth;k++){
+      prodRow.innerHTML += `<div class="cell">${pStr[k]}</div>`;
+    }
+  }
+  bracketBox.appendChild(prodRow);
+
+  if(pStage==='product'){
+    setTimeout(()=>document.getElementById('input-product').focus(),10);
+    bindValueInput('input-product', s.product, ()=>{
+      pStage='remainder'; wrongAttempts=0; renderPracticeBoardKeepingRevealed();
+    });
+    return;
+  }
+
+  // bar
+  const bar = document.createElement('div');
+  bar.className = 'row work-row bar';
+  bar.style.width = `${pWidth*36}px`;
+  bar.style.marginLeft = `${pOffset}px`;
+  bracketBox.appendChild(bar);
+
+  // remainder row: interactive input while active; once solved we move straight into
+  // the bring-down row below (the remainder digit is shown there, beside the next digit)
+  const remOffset = (colOf(pStepIdx)-1)*36;
+  if(pStage==='remainder'){
+    const remRow = document.createElement('div');
+    remRow.className = 'row work-row';
+    remRow.style.width = `36px`;
+    remRow.style.marginLeft = `${remOffset}px`;
+    remRow.style.display = 'flex';
+    remRow.style.alignItems = 'center';
+    remRow.style.justifyContent = 'center';
+    remRow.innerHTML = `<input type="text" inputmode="numeric" maxlength="1" id="input-remainder">`;
+    bracketBox.appendChild(remRow);
+    setTimeout(()=>document.getElementById('input-remainder').focus(),10);
+    bindValueInput('input-remainder', s.remainder, ()=>{
+      if(pStepIdx < pData.N-1){
+        pStage='bringdown'; wrongAttempts=0; renderPracticeBoard();
+      } else {
+        pStage='done';
+        finishCase();
+      }
+    });
+    return;
+  }
+
+  // bring-down stage: the remainder digit and the brought-down digit sit side by side
+  // on the same row, forming the new number for the next step (e.g. "1" + "3" = "13")
+  const nextDigit = digits[pStepIdx+1];
+  const bdWidth = s.remainder===0 ? 1 : 2;
+  const bdStart = colOf(pStepIdx+1) - bdWidth + 1;
+  const bdOffset = (bdStart-1)*36;
+  const bdRow = document.createElement('div');
+  bdRow.className = 'row work-row bringdown-row';
+  bdRow.style.width = `${bdWidth*36}px`;
+  bdRow.style.marginLeft = `${bdOffset}px`;
+  bdRow.style.gridTemplateColumns = `repeat(${bdWidth},36px)`;
+  let bdInner = '';
+  if(bdWidth===2){
+    bdInner += `<div class="cell">${s.remainder}</div>`;
+  }
+  bdInner += `<div class="cell"><input type="text" inputmode="numeric" maxlength="1" id="input-bringdown"></div>`;
+  bdRow.innerHTML = bdInner;
+  bracketBox.appendChild(bdRow);
+
+  setTimeout(()=>document.getElementById('input-bringdown').focus(),10);
+  bindDigitInput('input-bringdown', nextDigit, ()=>{
+    pStepIdx++;
+    pStage='quotient';
+    wrongAttempts=0;
+    renderPracticeBoard();
+  });
+}
+
+// re-render but keep everything already revealed (used mid-step); simplest is full re-render
+// since renderPracticeBoard() already recomputes revealUpTo = pStepIdx-1 and injectActiveInputs
+// rebuilds the in-progress step from scratch based on pStage.
+function renderPracticeBoardKeepingRevealed(){ renderPracticeBoard(); }
+
+function bindDigitInput(id, expected, onCorrect){
+  const el = document.getElementById(id);
+  el.addEventListener('input', ()=>{
+    const val = el.value.replace(/[^0-9]/g,'');
+    el.value = val;
+    if(val.length>=1){
+      checkAnswer(el, parseInt(val,10), expected, onCorrect);
+    }
+  });
+}
+function bindValueInput(id, expected, onCorrect){
+  const el = document.getElementById(id);
+  el.addEventListener('keyup', (e)=>{
+    if(e.key==='Enter'){
+      const val = el.value.replace(/[^0-9]/g,'');
+      if(val.length>0) checkAnswer(el, parseInt(val,10), expected, onCorrect);
+    }
+  });
+  el.addEventListener('blur', ()=>{
+    const val = el.value.replace(/[^0-9]/g,'');
+    if(val.length>0) checkAnswer(el, parseInt(val,10), expected, onCorrect);
+  });
+}
+
+function checkAnswer(el, val, expected, onCorrect){
+  if(el.dataset.locked==='1') return; // already handled — ignore duplicate events (e.g. double blur)
+  const fb = document.getElementById('feedback-msg');
+  if(val===expected){
+    el.dataset.locked = '1';
+    el.disabled = true;
+    el.classList.remove('wrong');
+    el.classList.add('correct');
+    fb.textContent = 'Correct! 🔍';
+    fb.className = 'feedback-msg good';
+    wrongAttempts = 0;
+    setTimeout(onCorrect, 350);
+  } else {
+    el.classList.remove('correct');
+    el.classList.add('wrong');
+    wrongAttempts++;
+    fb.textContent = 'Not quite — try again.';
+    fb.className = 'feedback-msg bad';
+    if(wrongAttempts>=2){
+      document.getElementById('hint-box').textContent = '💡 ' + hintFor();
+      document.getElementById('hint-box').classList.add('show');
+      playPracticeTT();
+    }
+    setTimeout(()=>{ el.value=''; el.classList.remove('wrong'); el.focus(); }, 400);
+  }
+}
+
+function finishCase(){
+  solvedCount++;
+  document.getElementById('streak-chip').textContent = `Solved this session: ${solvedCount}`;
+  renderPracticeBoard(); // shows fully solved board (revealUpTo = N-1 since pStepIdx=N-1 done... )
+  // force full reveal since pStage is 'done'
+  document.getElementById('practice-board').innerHTML = renderBoardHTML(pData, pData.N-1);
+  const qStr = String(pData.steps.map(s=>s.q).join('')).replace(/^0+(?=\d)/,'');
+  document.getElementById('celebrate-detail').textContent =
+    `${pData.dividendStr} ÷ ${pData.divisor} = ${qStr}${pData.finalRemainder? ' remainder '+pData.finalRemainder : ''}`;
+  document.getElementById('celebrate').style.display = 'block';
+}
+
+document.getElementById('hint-btn').addEventListener('click', ()=>{
+  if(pStage==='done') return;
+  document.getElementById('hint-box').textContent = '💡 ' + hintFor();
+  document.getElementById('hint-box').classList.add('show');
+  playPracticeTT();
+});
+
+document.getElementById('reveal-btn').addEventListener('click', ()=>{
+  if(pStage==='done') return;
+  const s = pData.steps[pStepIdx];
+  if(pStage==='quotient'){
+    const el = document.getElementById('input-quotient');
+    if(el){ el.value = s.q; }
+    setTimeout(()=>{ pStage='product'; wrongAttempts=0; renderPracticeBoard(); }, 500);
+  } else if(pStage==='product'){
+    const el = document.getElementById('input-product');
+    if(el){ el.value = s.product; }
+    setTimeout(()=>{ pStage='remainder'; wrongAttempts=0; renderPracticeBoard(); }, 500);
+  } else if(pStage==='remainder'){
+    const el = document.getElementById('input-remainder');
+    if(el){ el.value = s.remainder; }
+    setTimeout(()=>{
+      if(pStepIdx < pData.N-1){ pStage='bringdown'; wrongAttempts=0; renderPracticeBoard(); }
+      else { pStage='done'; finishCase(); }
+    }, 500);
+  } else if(pStage==='bringdown'){
+    const el = document.getElementById('input-bringdown');
+    const nextDigit = pData.digits[pStepIdx+1];
+    if(el){ el.value = nextDigit; }
+    setTimeout(()=>{ pStepIdx++; pStage='quotient'; wrongAttempts=0; renderPracticeBoard(); }, 500);
+  }
+});
+
+document.getElementById('new-case-btn').addEventListener('click', newCase);
+
+/* =========================================================
+   TABS
+   ========================================================= */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
+    if(btn.dataset.tab==='teach') stopTeachPlay();
+  });
+});
+
+newCase();
+</script>
+</body>
+</html>
