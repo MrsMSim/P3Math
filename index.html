@@ -346,5 +346,19 @@ footer {
   </footer>
 
 </div>
+<script>
+/* Sharing version for colleagues: open this hub as index.html?share
+   → every tool opens in share mode (no name picker, nothing saved). */
+(function(){
+  if(!new URLSearchParams(location.search).has('share')) return;
+  document.querySelectorAll('a[href$=".html"]').forEach(function(a){
+    a.href = a.getAttribute('href') + '?share';
+  });
+  var note = document.createElement('div');
+  note.textContent = 'Teacher sharing version: students can play freely, and no progress is saved.';
+  note.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:50;background:#FFF4D6;border-bottom:2px solid #E3A340;padding:8px 14px;text-align:center;font-family:Nunito,sans-serif;font-weight:700;font-size:.95rem;color:#3A2E3F;';
+  document.body.insertBefore(note, document.body.firstChild);
+})();
+</script>
 </body>
 </html>
