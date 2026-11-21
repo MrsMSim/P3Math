@@ -413,6 +413,24 @@ footer.note{
 @media (prefers-reduced-motion: reduce){
   .tt-list li{transition:none;}
 }
+
+/* ---------- Detective ID (student picker + progress logging) ---------- */
+.id-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:10px 14px;margin-bottom:14px;font-weight:700;}
+.id-bar .who{font-family:'Fredoka',sans-serif;font-size:1.1rem;color:var(--plum);}
+.id-bar .sync{font-size:.85rem;font-weight:600;opacity:.75;}
+.id-bar button{font:inherit;font-size:.9rem;background:none;border:none;color:var(--plum-2);text-decoration:underline;cursor:pointer;padding:4px;}
+.id-modal{position:fixed;inset:0;background:rgba(58,46,63,.55);display:none;align-items:center;justify-content:center;z-index:1000;padding:16px;}
+.id-modal.show{display:flex;}
+.id-box{background:var(--cream);border-radius:20px;max-width:620px;width:100%;max-height:90vh;overflow:auto;padding:22px;box-shadow:0 10px 40px rgba(0,0,0,.25);text-align:center;}
+.id-box h2{font-family:'Fredoka',sans-serif;color:var(--plum);margin:0 0 6px;}
+.id-box p{margin:0 0 14px;}
+.id-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:14px;}
+.id-grid button{font-family:'Fredoka',sans-serif;font-size:1.15rem;padding:14px 18px;min-width:120px;border-radius:14px;
+  border:2px solid var(--plum-2);background:var(--paper);color:var(--plum);cursor:pointer;}
+.id-grid button:hover,.id-grid button:focus{background:var(--amber);border-color:var(--amber-dark);color:#fff;outline:none;}
+.id-small{font:inherit;background:none;border:none;color:var(--plum-2);text-decoration:underline;cursor:pointer;margin:4px 8px;}
+.id-msg{font-weight:700;color:var(--bad);min-height:1.2em;}
 </style>
 </head>
 <body>
@@ -476,6 +494,11 @@ footer.note{
 
   <!-- PRACTICE PANEL -->
   <div class="panel" id="panel-practice">
+    <div class="id-bar" id="id-bar">
+      <span class="who" id="id-who">🕵️ Detective: (not chosen)</span>
+      <span class="sync" id="id-sync"></span>
+      <button id="id-change">Not me? Change</button>
+    </div>
     <div class="card">
       <h2>Case settings</h2>
       <div class="control-row">
@@ -526,6 +549,17 @@ footer.note{
         <h3>Case closed!</h3>
         <p id="celebrate-detail"></p>
       </div>
+    </div>
+  </div>
+
+  <div class="id-modal" id="id-modal" role="dialog" aria-modal="true" aria-labelledby="id-title">
+    <div class="id-box">
+      <h2 id="id-title">🕵️ Who is solving cases today?</h2>
+      <p id="id-step">Tap your class.</p>
+      <div class="id-grid" id="id-grid"></div>
+      <div class="id-msg" id="id-msg"></div>
+      <button class="id-small" id="id-back" hidden>← Back to classes</button>
+      <button class="id-small" id="id-guest">Just trying it out (teacher / visitor)</button>
     </div>
   </div>
 
@@ -863,6 +897,8 @@ let pData = null;
 let pStepIdx = 0;      // which step (index into steps[]) we're working on
 let pStage = 'quotient'; // 'quotient' | 'product' | 'remainder' | 'done'
 let wrongAttempts = 0;
+let caseRevealed = false; // used "Show this step" at least once this case
+let caseMaxWrong = 0;     // most wrong tries on any single step this case
 
 function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
 
@@ -891,6 +927,8 @@ function newCase(){
   pStepIdx = pData.firstSig;
   pStage = 'quotient';
   wrongAttempts = 0;
+  caseRevealed = false;
+  caseMaxWrong = 0;
   document.getElementById('case-chip').textContent = `Case #${caseNum}`;
   document.getElementById('celebrate').style.display = 'none';
   document.getElementById('feedback-msg').textContent = '';
@@ -1132,6 +1170,7 @@ function checkAnswer(el, val, expected, onCorrect){
     el.classList.remove('correct');
     el.classList.add('wrong');
     wrongAttempts++;
+    caseMaxWrong = Math.max(caseMaxWrong, wrongAttempts);
     fb.textContent = 'Not quite — try again.';
     fb.className = 'feedback-msg bad';
     if(wrongAttempts>=2){
@@ -1153,6 +1192,7 @@ function finishCase(){
   document.getElementById('celebrate-detail').textContent =
     `${pData.dividendStr} ÷ ${pData.divisor} = ${qStr}${pData.finalRemainder? ' remainder '+pData.finalRemainder : ''}`;
   document.getElementById('celebrate').style.display = 'block';
+  logCase();
 }
 
 document.getElementById('hint-btn').addEventListener('click', ()=>{
@@ -1164,6 +1204,7 @@ document.getElementById('hint-btn').addEventListener('click', ()=>{
 
 document.getElementById('reveal-btn').addEventListener('click', ()=>{
   if(pStage==='done') return;
+  caseRevealed = true;
   const s = pData.steps[pStepIdx];
   if(pStage==='quotient'){
     const el = document.getElementById('input-quotient');
@@ -1200,8 +1241,124 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     btn.classList.add('active');
     document.getElementById('panel-'+btn.dataset.tab).classList.add('active');
     if(btn.dataset.tab==='teach') stopTeachPlay();
+    if(btn.dataset.tab==='practice' && !getDetective() && !guestMode) openPicker();
   });
 });
+
+/* =========================================================
+   PROGRESS LOGGING → Mrs Sim's Practice Logger (Google Sheet)
+   One row per student; each solved case = one round.
+   ✓ = solved independently: no "Show this step" and ≤1 wrong try on every step.
+   ========================================================= */
+const LOG_URL = 'https://script.google.com/macros/s/AKfycbxJVYo_NyivesVHcDL_iUPE2ts8uJCOMpuH3vLR8jP8oacPWkY4ZKOAccEy28CvgjvA/exec';
+const LOG_TOOL = 'Division Detective';
+const LS_ID = 'mrsSim.detective', LS_QUEUE = 'mrsSim.logQueue', LS_ROSTER = 'mrsSim.roster';
+let guestMode = false;
+let roster = null;
+
+function lsGet(k, fallback){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function getDetective(){ return lsGet(LS_ID, null); }
+
+function caseSkills(d){
+  const tags = [d.finalRemainder === 0 ? 'No remainder' : 'With remainder'];
+  if(d.steps.slice(d.firstSig).some(s => s.q === 0)) tags.push('Zero in the answer');
+  if(d.firstSig > 0) tags.push('First digit too small');
+  return tags;
+}
+
+function logCase(){
+  const who = getDetective();
+  if(!who || guestMode || !pData) return;
+  const ok = !caseRevealed && caseMaxWrong <= 1;
+  const skills = {};
+  caseSkills(pData).forEach(t => skills[t] = [ok]);
+  const q = lsGet(LS_QUEUE, []);
+  q.push({ tool: LOG_TOOL, cls: who.cls, nick: who.nick,
+           roundId: Date.now() + '-' + Math.random().toString(36).slice(2, 8), skills });
+  lsSet(LS_QUEUE, q);
+  flushLog();
+}
+
+let flushing = false;
+async function flushLog(){
+  if(flushing) return; flushing = true;
+  let q = lsGet(LS_QUEUE, []);
+  while(q.length){
+    try{
+      await fetch(LOG_URL, { method:'POST', mode:'no-cors',
+        headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body: JSON.stringify(q[0]) });
+      q.shift(); lsSet(LS_QUEUE, q);
+    }catch(e){ break; } // offline — keep it and try again later
+  }
+  flushing = false;
+  updateIdBar();
+}
+
+function updateIdBar(){
+  const who = getDetective();
+  document.getElementById('id-who').textContent = guestMode ? '🕵️ Visitor mode (not saved)'
+    : who ? `🕵️ Detective: ${who.nick} (${who.cls})` : '🕵️ Detective: (not chosen)';
+  const waiting = lsGet(LS_QUEUE, []).length;
+  document.getElementById('id-sync').textContent = (who && !guestMode)
+    ? (waiting ? `⏳ ${waiting} case${waiting>1?'s':''} waiting to send` : '✅ Progress saved') : '';
+}
+
+async function loadRoster(){
+  try{
+    const res = await fetch(LOG_URL + '?action=roster');
+    const data = await res.json();
+    if(data && data.roster){ roster = data.roster; lsSet(LS_ROSTER, roster); return; }
+  }catch(e){}
+  roster = lsGet(LS_ROSTER, null);
+}
+
+function pickerButtons(list, onPick){
+  const grid = document.getElementById('id-grid');
+  grid.innerHTML = '';
+  list.forEach(label => {
+    const b = document.createElement('button');
+    b.textContent = label;
+    b.addEventListener('click', () => onPick(label));
+    grid.appendChild(b);
+  });
+}
+
+function showClasses(){
+  document.getElementById('id-step').textContent = 'Tap your class.';
+  document.getElementById('id-back').hidden = true;
+  const classes = roster ? Object.keys(roster) : [];
+  document.getElementById('id-msg').textContent = classes.length ? ''
+    : 'Cannot load the class list. Check the internet, or tap "Just trying it out".';
+  pickerButtons(classes, cls => {
+    document.getElementById('id-step').textContent = `Class ${cls}: tap your detective name.`;
+    document.getElementById('id-back').hidden = false;
+    pickerButtons(roster[cls], nick => {
+      lsSet(LS_ID, { cls, nick });
+      guestMode = false;
+      closePicker();
+    });
+  });
+}
+
+async function openPicker(){
+  document.getElementById('id-modal').classList.add('show');
+  document.getElementById('id-msg').textContent = 'Loading…';
+  document.getElementById('id-grid').innerHTML = '';
+  if(!roster) await loadRoster();
+  showClasses();
+}
+function closePicker(){
+  document.getElementById('id-modal').classList.remove('show');
+  updateIdBar();
+}
+
+document.getElementById('id-change').addEventListener('click', () => { roster = null; openPicker(); });
+document.getElementById('id-back').addEventListener('click', showClasses);
+document.getElementById('id-guest').addEventListener('click', () => { guestMode = true; closePicker(); });
+window.addEventListener('online', flushLog);
+updateIdBar();
+flushLog();
 
 newCase();
 </script>
