@@ -417,6 +417,7 @@ footer.note{
 /* ---------- Detective ID (student picker + progress logging) ---------- */
 .id-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
   background:var(--paper);border:2px solid var(--line);border-radius:14px;padding:10px 14px;margin-bottom:14px;font-weight:700;}
+.id-bar[hidden]{display:none;}
 .id-bar .who{font-family:'Fredoka',sans-serif;font-size:1.1rem;color:var(--plum);}
 .id-bar .sync{font-size:.85rem;font-weight:600;opacity:.75;}
 .id-bar button{font:inherit;font-size:.9rem;background:none;border:none;color:var(--plum-2);text-decoration:underline;cursor:pointer;padding:4px;}
@@ -559,7 +560,7 @@ footer.note{
       <div class="id-grid" id="id-grid"></div>
       <div class="id-msg" id="id-msg"></div>
       <button class="id-small" id="id-back" hidden>← Back to classes</button>
-      <button class="id-small" id="id-guest">Just trying it out (teacher / visitor)</button>
+      <button class="id-small" id="id-guest">Just play — don't save my progress</button>
     </div>
   </div>
 
@@ -1253,7 +1254,8 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 const LOG_URL = 'https://script.google.com/macros/s/AKfycbxJVYo_NyivesVHcDL_iUPE2ts8uJCOMpuH3vLR8jP8oacPWkY4ZKOAccEy28CvgjvA/exec';
 const LOG_TOOL = 'Division Detective';
 const LS_ID = 'mrsSim.detective', LS_QUEUE = 'mrsSim.logQueue', LS_ROSTER = 'mrsSim.roster';
-let guestMode = false;
+// Sharing link for other teachers: add ?share to the URL → no name picker, nothing saved.
+let guestMode = new URLSearchParams(location.search).has('share');
 let roster = null;
 
 function lsGet(k, fallback){ try{ const v = localStorage.getItem(k); return v ? JSON.parse(v) : fallback; }catch(e){ return fallback; } }
@@ -1297,7 +1299,8 @@ async function flushLog(){
 
 function updateIdBar(){
   const who = getDetective();
-  document.getElementById('id-who').textContent = guestMode ? '🕵️ Visitor mode (not saved)'
+  document.getElementById('id-bar').hidden = guestMode && new URLSearchParams(location.search).has('share');
+  document.getElementById('id-who').textContent = guestMode ? '🕵️ Practice mode (not saved)'
     : who ? `🕵️ Detective: ${who.nick} (${who.cls})` : '🕵️ Detective: (not chosen)';
   const waiting = lsGet(LS_QUEUE, []).length;
   document.getElementById('id-sync').textContent = (who && !guestMode)
